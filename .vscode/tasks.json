@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CubeProg: List all available communication interfaces",
+      "type": "shell",
+      "command": "STM32_Programmer_CLI",
+      "args": ["--list"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "CubeProg: Flash project (SWD)",
+      "type": "shell",
+      "command": "STM32_Programmer_CLI",
+      "args": [
+        "--connect",
+        "port=swd",
+        "--download",
+        "${command:cmake.launchTargetPath}",
+        "-hardRst"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

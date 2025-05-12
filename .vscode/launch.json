@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Microcontroller - STLink-V3",
+      "cwd": "${workspaceFolder}",
+      "type": "cortex-debug",
+      "executable": "${command:cmake.launchTargetPath}",
+      "request": "launch",
+      "servertype": "stlink",
+      "device": "STM32F103RCT6",
+      "interface": "swd",
+      "serialNumber": "",
+      "runToEntryPoint": "vLed_Task",
+      "svdFile": "/opt/ST/STM32CubeCLT_1.18.0/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
+      "v1": false,
+      "showDevDebugOutput": "both",
+      "serverArgs": ["-m", "0"]
+    }
+  ]
+}
