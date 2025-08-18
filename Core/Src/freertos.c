@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -25,8 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "interface/pin_interface.hpp"
-#include "controller/led_controller.hpp"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,8 +45,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-using bolt::pin::GpioOutputPin;
-using bolt::controller::LedController;
+
 /* USER CODE END Variables */
 /* Definitions for ledTask */
 osThreadId_t ledTaskHandle;
@@ -56,10 +54,17 @@ const osThreadAttr_t ledTask_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for ioTask */
-osThreadId_t ioTaskHandle;
-const osThreadAttr_t ioTask_attributes = {
-  .name = "ioTask",
+/* Definitions for commandTask */
+osThreadId_t commandTaskHandle;
+const osThreadAttr_t commandTask_attributes = {
+  .name = "commandTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for queryTask */
+osThreadId_t queryTaskHandle;
+const osThreadAttr_t queryTask_attributes = {
+  .name = "queryTask",
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -70,7 +75,8 @@ const osThreadAttr_t ioTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void vLed_Task(void *argument);
-void vIO_Task(void *argument);
+void vCommand_Task(void *argument);
+void vQuery_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -104,8 +110,11 @@ void MX_FREERTOS_Init(void) {
   /* creation of ledTask */
   ledTaskHandle = osThreadNew(vLed_Task, NULL, &ledTask_attributes);
 
-  /* creation of ioTask */
-  ioTaskHandle = osThreadNew(vIO_Task, NULL, &ioTask_attributes);
+  /* creation of commandTask */
+  commandTaskHandle = osThreadNew(vCommand_Task, NULL, &commandTask_attributes);
+
+  /* creation of queryTask */
+  queryTaskHandle = osThreadNew(vQuery_Task, NULL, &queryTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -119,39 +128,56 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_vLed_Task */
 /**
-  * @brief  Function implementing the ledTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the ledTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_vLed_Task */
 __weak void vLed_Task(void *argument)
 {
   /* USER CODE BEGIN vLed_Task */
   /* Infinite loop */
-  GpioOutputPin led(LED_GPIO_Port, LED_Pin);
-  LedController controller(led);
-
-  // Blink continuously
-  controller.blink(-1, 300);
+  for (;;)
+  {
+    osDelay(1);
+  }
   /* USER CODE END vLed_Task */
 }
 
-/* USER CODE BEGIN Header_vIO_Task */
+/* USER CODE BEGIN Header_vCommand_Task */
 /**
-* @brief Function implementing the ioTask thread.
+* @brief Function implementing the commandTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_vIO_Task */
-__weak void vIO_Task(void *argument)
+/* USER CODE END Header_vCommand_Task */
+__weak void vCommand_Task(void *argument)
 {
-  /* USER CODE BEGIN vIO_Task */
+  /* USER CODE BEGIN vCommand_Task */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END vIO_Task */
+  /* USER CODE END vCommand_Task */
+}
+
+/* USER CODE BEGIN Header_vQuery_Task */
+/**
+* @brief Function implementing the queryTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_vQuery_Task */
+__weak void vQuery_Task(void *argument)
+{
+  /* USER CODE BEGIN vQuery_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END vQuery_Task */
 }
 
 /* Private application code --------------------------------------------------*/

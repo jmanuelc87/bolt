@@ -47,9 +47,18 @@
     "stdexcept": "cpp",
     "streambuf": "cpp",
     "cinttypes": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "map": "cpp",
+    "freertos.h": "c",
+    "task.h": "c",
+    "cmsis_os.h": "c",
+    "serial_port.hpp": "c",
+    "serial_interface.hpp": "c",
+    "interface.hpp": "c",
+    "stm32f1xx_hal.h": "c"
   },
   "launches": {
     "DebugMicrocontroller": "Debug Microcontroller - STLink-V3(bolt)"
-  }
+  },
+  "C_Cpp.default.compilerPath": "/opt/ST/STM32CubeCLT_1.18.0/GNU-tools-for-STM32/bin/arm-none-eabi-g++"
 }

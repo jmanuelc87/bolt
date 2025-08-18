@@ -3,6 +3,7 @@
 
 #include "interface/pin_interface.hpp"
 #include "FreeRTOS.h"
+#include "cmsis_os.h"
 #include "task.h"
 
 namespace bolt

@@ -50,21 +50,25 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    ${CMAKE_SOURCE_DIR}/Bolt/Src/motor_command.cpp
-    ${CMAKE_SOURCE_DIR}/Bolt/Src/pin_interface.cpp
-    ${CMAKE_SOURCE_DIR}/Bolt/Src/led_controller.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/motor_command.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/pin_interface.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/serial_interface.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/led_controller.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/serial_port.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/application.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/debug.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     ${CMAKE_SOURCE_DIR}/Bolt/Inc
+    ${CMAKE_SOURCE_DIR}/Bolt/Inc/bolt
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
-    USE_HAL_UART_REGISTER_CALLBACKS
 )
 
 # Add linked libraries

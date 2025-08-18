@@ -11,7 +11,7 @@
       "device": "STM32F103RCT6",
       "interface": "swd",
       "serialNumber": "",
-      "runToEntryPoint": "vLed_Task",
+      "runToEntryPoint": "main",
       "svdFile": "/opt/ST/STM32CubeCLT_1.18.0/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
       "v1": false,
       "showDevDebugOutput": "both",

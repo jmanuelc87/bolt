@@ -7,7 +7,7 @@ void bolt::controller::LedController::blink(int16_t numBlinks, uint16_t delayMs)
         for (uint16_t i = 0; i < numBlinks; i++)
         {
             this->ledPin_.toggle();
-            vTaskDelay(delayMs / portTICK_RATE_MS);
+            vTaskDelay(pdMS_TO_TICKS(delayMs));
         }
     }
     else if (numBlinks == -1)
@@ -15,7 +15,7 @@ void bolt::controller::LedController::blink(int16_t numBlinks, uint16_t delayMs)
         while (1)
         {
             this->ledPin_.toggle();
-            vTaskDelay(delayMs / portTICK_RATE_MS);
+            vTaskDelay(pdMS_TO_TICKS(delayMs));
         }
     }
 }
