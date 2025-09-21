@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "interface/pin_interface.hpp"
-#include "controller/led_controller.hpp"
+#include "controller/peripheral_controllers.hpp"
 #include "interface/serial_interface.hpp"
 
 #include "queues.hpp"

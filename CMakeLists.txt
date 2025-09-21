@@ -53,6 +53,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/pin_interface.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/pwm_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/serial_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/led_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/application.cpp

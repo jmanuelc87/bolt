@@ -33,6 +33,12 @@ namespace bolt
     public:
         virtual bool sendMessage(uint32_t id, const uint8_t *data, uint8_t len) = 0;
     };
+
+    class PWMTimer
+    {
+    public:
+        virtual bool setPulse(int16_t pulse) = 0;
+    };
 }
 
 #endif /* BOLT_INTERFACE_HPP */

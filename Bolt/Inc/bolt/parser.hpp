@@ -133,12 +133,22 @@ namespace bolt
                 if (rf.len != 0)
                     return 0;
                 return &ping_;
+
+            case FT_SetMotor:
+                if (rf.len != 5)
+                    return 0;
+
+                setmtr_.key = rf.payload[0];
+                setmtr_.value = u32be(&rf.payload[1]);
+
+                return &setmtr_;
             }
             return 0;
         }
 
     private:
         PingFrame ping_;
+        SetMotorFrame setmtr_;
     };
 }
 
