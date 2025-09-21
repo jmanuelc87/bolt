@@ -52,10 +52,11 @@
     "freertos.h": "c",
     "task.h": "c",
     "cmsis_os.h": "c",
-    "serial_port.hpp": "c",
-    "serial_interface.hpp": "c",
-    "interface.hpp": "c",
-    "stm32f1xx_hal.h": "c"
+    "serial_port.hpp": "cpp",
+    "serial_interface.hpp": "cpp",
+    "interface.hpp": "cpp",
+    "stm32f1xx_hal.h": "c",
+    "cstring": "cpp"
   },
   "launches": {
     "DebugMicrocontroller": "Debug Microcontroller - STLink-V3(bolt)"

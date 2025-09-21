@@ -8,9 +8,14 @@ int bolt::serial::UartAsyncSerialPort::transmit(const uint8_t *data, uint16_t si
     return 0;
 }
 
-void bolt::serial::UartAsyncSerialPort::startReception(size_t length)
+void bolt::serial::UartAsyncSerialPort::startReception()
 {
-    HAL_UARTEx_ReceiveToIdle_IT(this->huart_, this->receiveBuffer_, length);
+    HAL_UARTEx_ReceiveToIdle_IT(this->huart_, this->receiveBuffer_, this->bufferSize_);
+}
+
+uint8_t *bolt::serial::UartAsyncSerialPort::getData()
+{
+    return this->receiveBuffer_;
 }
 
 void bolt::serial::UartAsyncSerialPort::C_TxCplt(UART_HandleTypeDef *h)

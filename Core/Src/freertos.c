@@ -51,7 +51,7 @@
 osThreadId_t ledTaskHandle;
 const osThreadAttr_t ledTask_attributes = {
   .name = "ledTask",
-  .stack_size = 256 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for commandTask */
@@ -68,6 +68,13 @@ const osThreadAttr_t queryTask_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for processTask */
+osThreadId_t processTaskHandle;
+const osThreadAttr_t processTask_attributes = {
+  .name = "processTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -77,6 +84,7 @@ const osThreadAttr_t queryTask_attributes = {
 void vLed_Task(void *argument);
 void vCommand_Task(void *argument);
 void vQuery_Task(void *argument);
+void vProcess_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -115,6 +123,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of queryTask */
   queryTaskHandle = osThreadNew(vQuery_Task, NULL, &queryTask_attributes);
+
+  /* creation of processTask */
+  processTaskHandle = osThreadNew(vProcess_Task, NULL, &processTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -178,6 +189,24 @@ __weak void vQuery_Task(void *argument)
     osDelay(1);
   }
   /* USER CODE END vQuery_Task */
+}
+
+/* USER CODE BEGIN Header_vProcess_Task */
+/**
+* @brief Function implementing the processTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_vProcess_Task */
+__weak void vProcess_Task(void *argument)
+{
+  /* USER CODE BEGIN vProcess_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END vProcess_Task */
 }
 
 /* Private application code --------------------------------------------------*/

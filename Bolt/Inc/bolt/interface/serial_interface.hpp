@@ -7,6 +7,8 @@
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
 
+#include "definitions.hpp"
+
 namespace bolt
 {
     namespace serial
@@ -14,18 +16,15 @@ namespace bolt
         class UartAsyncSerialPort : public bolt::AsyncSerialPort
         {
         public:
-            UartAsyncSerialPort(UART_HandleTypeDef *huart, uint16_t bufferSize, uint16_t payloadSize) : huart_(huart), bufferSize_(bufferSize), payloadSize_(payloadSize)
+            UartAsyncSerialPort(UART_HandleTypeDef *huart) : huart_(huart), bufferSize_(BUFF_SIZE)
             {
-                // Register the Tx Complete callback
-                if (HAL_UART_RegisterCallback(huart_, HAL_UART_TX_COMPLETE_CB_ID, &C_TxCplt) != HAL_OK)
-                {
-                    // Handle registration error
-                }
+                HAL_StatusTypeDef st = HAL_ERROR;
 
-                if (HAL_UART_RegisterRxEventCallback(huart_, &C_RxCplt) != HAL_OK)
-                {
-                    // Handle registration error
-                }
+                st = HAL_UART_RegisterCallback(huart_, HAL_UART_TX_COMPLETE_CB_ID, &C_TxCplt);
+                configASSERT(st == HAL_OK);
+
+                st = HAL_UART_RegisterRxEventCallback(huart_, &C_RxCplt);
+                configASSERT(st == HAL_OK);
 
                 this->receiveBuffer_ = new uint8_t[this->bufferSize_];
             }
@@ -40,7 +39,8 @@ namespace bolt
             }
 
             int transmit(const uint8_t *data, uint16_t size) override;
-            void startReception(size_t length);
+            void startReception();
+            uint8_t *getData();
 
             std::function<void()> txCompleteCallback;
             std::function<void(uint16_t)> rxEventCallback;
@@ -61,7 +61,6 @@ namespace bolt
             UART_HandleTypeDef *huart_;
             uint8_t *receiveBuffer_;
             uint16_t bufferSize_;
-            uint16_t payloadSize_;
 
             static void C_TxCplt(UART_HandleTypeDef *h);
             static void C_RxCplt(UART_HandleTypeDef *h, uint16_t Size);

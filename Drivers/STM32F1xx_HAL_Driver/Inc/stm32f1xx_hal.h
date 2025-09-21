@@ -18,8 +18,8 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef BOLT_STM32F1XX_HAL_H
-#define BOLT_STM32F1XX_HAL_H
+#ifndef __STM32F1xx_HAL_H
+#define __STM32F1xx_HAL_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -352,6 +352,6 @@ void HAL_DBGMCU_DisableDBGStandbyMode(void);
 }
 #endif
 
-#endif /* BOLT_STM32F1XX_HAL_H */
+#endif /* __STM32F1xx_HAL_H */
 
 
