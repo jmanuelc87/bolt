@@ -23,8 +23,9 @@ AA 02 03 01 03 E8 D0 16 55
 
 #### Motor Stop Frame
 
+motor_id == 1 values (1,2,3,4)
 brake == 0 or 1
 
 ```
-AA 03 01 00 A6 FD 55
+AA 03 02 01 00 42 4D 55
 ```

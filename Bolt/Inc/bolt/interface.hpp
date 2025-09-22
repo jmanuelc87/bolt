@@ -4,15 +4,6 @@
 #include <functional>
 #include <cstdint>
 
-typedef enum
-{
-    MOTOR_ID_M1 = 1,
-    MOTOR_ID_M2,
-    MOTOR_ID_M3,
-    MOTOR_ID_M4,
-    MAX_MOTOR
-} Motor_ID;
-
 namespace bolt
 {
     class OutputPin
@@ -46,7 +37,7 @@ namespace bolt
     class PWMTimer
     {
     public:
-        virtual bool setPulse(int16_t pulse, Motor_ID motor) = 0;
+        virtual bool setPulse(int16_t pulse) = 0;
     };
 }
 

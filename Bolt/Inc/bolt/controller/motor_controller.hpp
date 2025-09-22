@@ -1,7 +1,5 @@
-#ifndef BOLT_PWM_INTERFACE_HPP
-#define BOLT_PWM_INTERFACE_HPP
-
-#include <unordered_map>
+#ifndef BOLT_MOTOR_CONTROLLER_HPP
+#define BOLT_MOTOR_CONTROLLER_HPP
 
 #include "tim.h"
 #include "stm32f1xx_hal.h"
@@ -23,17 +21,24 @@
 #define MOTOR_IGNORE_PULSE (1600)
 #define MOTOR_MAX_PULSE (3600)
 
-extern "C" void set_motor_pulse(int16_t speed, Motor_ID motor);
-
 namespace bolt
 {
-    namespace pwm
+    namespace controller
     {
 
-        class MotorInterface : public bolt::PWMTimer
+        typedef enum
+        {
+            MOTOR_ID_M1 = 1,
+            MOTOR_ID_M2,
+            MOTOR_ID_M3,
+            MOTOR_ID_M4,
+            MAX_MOTOR
+        } Motor_ID;
+
+        class MotorController : public bolt::PWMTimer
         {
         public:
-            MotorInterface()
+            MotorController(Motor_ID motor_id) : motor_id_(motor_id)
             {
                 HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
                 HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
@@ -46,15 +51,16 @@ namespace bolt
                 HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
                 HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
             };
-            ~MotorInterface() {};
+            ~MotorController() {};
 
-            bool setPulse(int16_t pulse, Motor_ID motor) override;
+            bool setPulse(int16_t pulse) override;
             bool stop(uint8_t brake);
 
         private:
+            Motor_ID motor_id_;
             int16_t ignore_dead_zone(int16_t pulse);
         };
     }
 }
 
-#endif /* BOLT_PWM_INTERFACE_HPP */
+#endif /* BOLT_MOTOR_CONTROLLER_HPP */

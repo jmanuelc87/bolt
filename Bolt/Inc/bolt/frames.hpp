@@ -53,6 +53,7 @@ namespace bolt
 
     struct MotorStopFrame : public Frame
     {
+        uint8_t motor;
         uint8_t brake;
 
         MotorStopFrame() : Frame(FT_MotorStop), brake(0) {}

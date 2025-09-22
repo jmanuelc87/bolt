@@ -1,6 +1,6 @@
-#include "interface/pwm_interface.hpp"
+#include "controller/motor_controller.hpp"
 
-bool bolt::pwm::MotorInterface::setPulse(int16_t speed, Motor_ID motor)
+bool bolt::controller::MotorController::setPulse(int16_t speed)
 {
     int16_t pulse = this->ignore_dead_zone(speed);
 
@@ -9,40 +9,7 @@ bool bolt::pwm::MotorInterface::setPulse(int16_t speed, Motor_ID motor)
     if (pulse <= -MOTOR_MAX_PULSE)
         pulse = -MOTOR_MAX_PULSE;
 
-    set_motor_pulse(pulse, motor);
-
-    return 1;
-}
-
-bool bolt::pwm::MotorInterface::stop(uint8_t brake)
-{
-    if (brake != 0)
-        brake = 1;
-    PWM_M1_A = brake * MOTOR_MAX_PULSE;
-    PWM_M1_B = brake * MOTOR_MAX_PULSE;
-    PWM_M2_A = brake * MOTOR_MAX_PULSE;
-    PWM_M2_B = brake * MOTOR_MAX_PULSE;
-    PWM_M3_A = brake * MOTOR_MAX_PULSE;
-    PWM_M3_B = brake * MOTOR_MAX_PULSE;
-    PWM_M4_A = brake * MOTOR_MAX_PULSE;
-    PWM_M4_B = brake * MOTOR_MAX_PULSE;
-
-    return 1;
-}
-
-int16_t bolt::pwm::MotorInterface::ignore_dead_zone(int16_t pulse)
-{
-    if (pulse > 0)
-        return pulse + MOTOR_IGNORE_PULSE;
-    if (pulse < 0)
-        return pulse - MOTOR_IGNORE_PULSE;
-
-    return pulse;
-}
-
-extern "C" void set_motor_pulse(int16_t pulse, Motor_ID motor)
-{
-    switch (motor)
+    switch (this->motor_id_)
     {
     case MOTOR_ID_M1:
     {
@@ -107,4 +74,50 @@ extern "C" void set_motor_pulse(int16_t pulse, Motor_ID motor)
     default:
         break;
     }
+
+    return 1;
+}
+
+bool bolt::controller::MotorController::stop(uint8_t brake)
+{
+    if (brake != 0)
+        brake = 1;
+
+    switch (this->motor_id_)
+    {
+    case MOTOR_ID_M1:
+        PWM_M1_A = brake * MOTOR_MAX_PULSE;
+        PWM_M1_B = brake * MOTOR_MAX_PULSE;
+        break;
+
+    case MOTOR_ID_M2:
+        PWM_M2_A = brake * MOTOR_MAX_PULSE;
+        PWM_M2_B = brake * MOTOR_MAX_PULSE;
+        break;
+
+    case MOTOR_ID_M3:
+        PWM_M3_A = brake * MOTOR_MAX_PULSE;
+        PWM_M3_B = brake * MOTOR_MAX_PULSE;
+        break;
+
+    case MOTOR_ID_M4:
+        PWM_M4_A = brake * MOTOR_MAX_PULSE;
+        PWM_M4_B = brake * MOTOR_MAX_PULSE;
+        break;
+
+    default:
+        break;
+    }
+
+    return 1;
+}
+
+int16_t bolt::controller::MotorController::ignore_dead_zone(int16_t pulse)
+{
+    if (pulse > 0)
+        return pulse + MOTOR_IGNORE_PULSE;
+    if (pulse < 0)
+        return pulse - MOTOR_IGNORE_PULSE;
+
+    return pulse;
 }

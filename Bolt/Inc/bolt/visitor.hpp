@@ -14,6 +14,13 @@
 
 extern osMessageQueueId_t queryQueue;
 
+using bolt::controller::Motor_ID;
+
+using bolt::controller::MOTOR_ID_M1;
+using bolt::controller::MOTOR_ID_M2;
+using bolt::controller::MOTOR_ID_M3;
+using bolt::controller::MOTOR_ID_M4;
+
 namespace bolt
 {
 
@@ -58,14 +65,57 @@ namespace bolt
 
         virtual void visit(const MotorMoveFrame &f)
         {
+            Motor_ID motor_id = static_cast<Motor_ID>(f.motor);
+            switch (motor_id)
+            {
+            case MOTOR_ID_M1:
+                gMotor1->setPulse(f.pulse);
+                break;
 
-            gMotors->setPulse(f.pulse, static_cast<Motor_ID>(f.motor));
+            case MOTOR_ID_M2:
+                gMotor2->setPulse(f.pulse);
+                break;
+
+            case MOTOR_ID_M3:
+                gMotor2->setPulse(f.pulse);
+                break;
+
+            case MOTOR_ID_M4:
+                gMotor2->setPulse(f.pulse);
+                break;
+
+            default:
+                break;
+            }
+
             send_message("OK!");
         }
 
         virtual void visit(const MotorStopFrame &f)
         {
-            gMotors->stop(f.brake);
+            Motor_ID motor_id = static_cast<Motor_ID>(f.motor);
+            switch (motor_id)
+            {
+            case MOTOR_ID_M1:
+                gMotor1->stop(f.brake);
+                break;
+
+            case MOTOR_ID_M2:
+                gMotor2->stop(f.brake);
+                break;
+
+            case MOTOR_ID_M3:
+                gMotor2->stop(f.brake);
+                break;
+
+            case MOTOR_ID_M4:
+                gMotor2->stop(f.brake);
+                break;
+
+            default:
+                break;
+            }
+
             send_message("OK!");
         }
     };

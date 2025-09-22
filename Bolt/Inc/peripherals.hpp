@@ -3,13 +3,21 @@
 
 #include "controller/peripheral_controllers.hpp"
 #include "interface/serial_interface.hpp"
-#include "interface/pwm_interface.hpp"
+#include "controller/motor_controller.hpp"
 
-using bolt::pwm::MotorInterface;
+using bolt::controller::MOTOR_ID_M1;
+using bolt::controller::MOTOR_ID_M2;
+using bolt::controller::MOTOR_ID_M3;
+using bolt::controller::MOTOR_ID_M4;
+using bolt::controller::MotorController;
 using bolt::serial::UartAsyncSerialPort;
 
 UartAsyncSerialPort *gUart1 = nullptr;
-MotorInterface *gMotors = nullptr;
+
+MotorController *gMotor1 = nullptr;
+MotorController *gMotor2 = nullptr;
+MotorController *gMotor3 = nullptr;
+MotorController *gMotor4 = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {
@@ -17,8 +25,17 @@ extern "C" void AppPeripheralsInit()
     UartAsyncSerialPort::registry().insert({&huart1, &port});
     gUart1 = &port;
 
-    static MotorInterface motors;
-    gMotors = &motors;
+    static MotorController motor1(MOTOR_ID_M1);
+    gMotor1 = &motor1;
+
+    static MotorController motor2(MOTOR_ID_M2);
+    gMotor2 = &motor2;
+
+    static MotorController motor3(MOTOR_ID_M3);
+    gMotor3 = &motor3;
+
+    static MotorController motor4(MOTOR_ID_M4);
+    gMotor4 = &motor4;
 }
 
 #endif /* BOLT_PERIPHERALS_HPP */

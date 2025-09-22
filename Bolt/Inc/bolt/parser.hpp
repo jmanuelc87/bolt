@@ -144,10 +144,11 @@ namespace bolt
                 return &setmtr_;
 
             case FT_MotorStop:
-                if (rf.len != 1)
+                if (rf.len != 2)
                     return 0;
 
-                stop_.brake = rf.payload[0];
+                stop_.motor = rf.payload[0];
+                stop_.brake = rf.payload[1];
 
                 return &stop_;
             }
