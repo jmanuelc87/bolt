@@ -151,6 +151,15 @@ namespace bolt
                 stop_.brake = rf.payload[1];
 
                 return &stop_;
+
+            case FT_ServoMove:
+                if (rf.len != 2)
+                    return 0;
+
+                sm_.servo = rf.payload[0];
+                sm_.angle = rf.payload[1];
+
+                return &sm_;
             }
             return 0;
         }
@@ -159,6 +168,7 @@ namespace bolt
         PingFrame ping_;
         MotorMoveFrame setmtr_;
         MotorStopFrame stop_;
+        ServoMoveFrame sm_;
     };
 }
 

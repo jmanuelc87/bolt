@@ -29,3 +29,13 @@ brake == 0 or 1
 ```
 AA 03 02 01 00 42 4D 55
 ```
+
+
+#### PWM Servo Move Frame
+
+servo_id == 0 values (0, 1, 2, 3)
+angle == 60 ranges [0, 180]
+
+```
+AA 04 02 00 3C D7 8E 55
+```
