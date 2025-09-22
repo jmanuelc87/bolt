@@ -56,6 +56,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/serial_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/led_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/motor_controller.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/servo_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/application.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/queues.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/debug.c
