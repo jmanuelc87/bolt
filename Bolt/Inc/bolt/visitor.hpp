@@ -10,13 +10,7 @@
 #include "cmsis_os2.h"
 #include "stm32f1xx_hal.h"
 
-#include "interface/pwm_interface.hpp"
-
-using bolt::pwm::MOTOR_ID_M1;
-using bolt::pwm::MOTOR_ID_M2;
-using bolt::pwm::MOTOR_ID_M3;
-using bolt::pwm::MOTOR_ID_M4;
-using bolt::pwm::PWMTimerInterface;
+#include "peripherals.hpp"
 
 extern osMessageQueueId_t queryQueue;
 
@@ -40,55 +34,39 @@ namespace bolt
         return i;
     }
 
-    static PWMTimerInterface motor1(TIM8, MOTOR_ID_M1);
-    static PWMTimerInterface motor2(TIM8, MOTOR_ID_M2);
-    static PWMTimerInterface motor3(TIM1, MOTOR_ID_M3);
-    static PWMTimerInterface motor4(TIM1, MOTOR_ID_M4);
+    static void send_message(const char *data)
+    {
+        Message m;
+
+        uint16_t len = build_frame(0x01, reinterpret_cast<const uint8_t *>(data), strlen(data), m.data, sizeof(m.data));
+        m.size = len;
+
+        osStatus_t s = osMessageQueuePut(queryQueue, &m, 0, 0);
+        if (s != osOK)
+        {
+            // failed message
+        }
+    }
 
     struct AppVisitor : public FrameVisitor
     {
-        // Provide storage or references to your system components here
-        // (sensors, config, queues, etc.)
 
         virtual void visit(const PingFrame &)
         {
-            Message m;
-
-            const char *data = "DONE!";
-
-            uint16_t len = build_frame(0x01, reinterpret_cast<const uint8_t *>(data), strlen(data), m.data, sizeof(m.data));
-            m.size = len;
-
-            osStatus_t s = osMessageQueuePut(queryQueue, &m, 0, 0);
-            if (s != osOK)
-            {
-                // failed message
-            }
+            send_message("OK!");
         }
 
-        virtual void visit(const SetMotorFrame &f)
+        virtual void visit(const MotorMoveFrame &f)
         {
-            switch (f.key)
-            {
-            case 1:
-                motor1.setPulse(f.value);
-                break;
 
-            case 2:
-                motor2.setPulse(f.value);
-                break;
+            gMotors->setPulse(f.pulse, static_cast<Motor_ID>(f.motor));
+            send_message("OK!");
+        }
 
-            case 3:
-                motor3.setPulse(f.value);
-                break;
-
-            case 4:
-                motor4.setPulse(f.value);
-                break;
-
-            default:
-                break;
-            }
+        virtual void visit(const MotorStopFrame &f)
+        {
+            gMotors->stop(f.brake);
+            send_message("OK!");
         }
     };
 }

@@ -1,6 +1,6 @@
 #include "interface/pwm_interface.hpp"
 
-bool bolt::pwm::PWMTimerInterface::setPulse(int16_t speed)
+bool bolt::pwm::MotorInterface::setPulse(int16_t speed, Motor_ID motor)
 {
     int16_t pulse = this->ignore_dead_zone(speed);
 
@@ -9,20 +9,53 @@ bool bolt::pwm::PWMTimerInterface::setPulse(int16_t speed)
     if (pulse <= -MOTOR_MAX_PULSE)
         pulse = -MOTOR_MAX_PULSE;
 
-    switch (this->motorId_)
+    set_motor_pulse(pulse, motor);
+
+    return 1;
+}
+
+bool bolt::pwm::MotorInterface::stop(uint8_t brake)
+{
+    if (brake != 0)
+        brake = 1;
+    PWM_M1_A = brake * MOTOR_MAX_PULSE;
+    PWM_M1_B = brake * MOTOR_MAX_PULSE;
+    PWM_M2_A = brake * MOTOR_MAX_PULSE;
+    PWM_M2_B = brake * MOTOR_MAX_PULSE;
+    PWM_M3_A = brake * MOTOR_MAX_PULSE;
+    PWM_M3_B = brake * MOTOR_MAX_PULSE;
+    PWM_M4_A = brake * MOTOR_MAX_PULSE;
+    PWM_M4_B = brake * MOTOR_MAX_PULSE;
+
+    return 1;
+}
+
+int16_t bolt::pwm::MotorInterface::ignore_dead_zone(int16_t pulse)
+{
+    if (pulse > 0)
+        return pulse + MOTOR_IGNORE_PULSE;
+    if (pulse < 0)
+        return pulse - MOTOR_IGNORE_PULSE;
+
+    return pulse;
+}
+
+extern "C" void set_motor_pulse(int16_t pulse, Motor_ID motor)
+{
+    switch (motor)
     {
     case MOTOR_ID_M1:
     {
         pulse = -pulse;
         if (pulse >= 0)
         {
-            this->tim_->CCR1 = pulse;
-            this->tim_->CCR2 = 0;
+            PWM_M1_A = pulse;
+            PWM_M1_B = 0;
         }
         else
         {
-            this->tim_->CCR1 = 0;
-            this->tim_->CCR2 = -pulse;
+            PWM_M1_A = 0;
+            PWM_M1_B = -pulse;
         }
         break;
     }
@@ -31,13 +64,13 @@ bool bolt::pwm::PWMTimerInterface::setPulse(int16_t speed)
         pulse = -pulse;
         if (pulse >= 0)
         {
-            this->tim_->CCR3 = pulse;
-            this->tim_->CCR4 = 0;
+            PWM_M2_A = pulse;
+            PWM_M2_B = 0;
         }
         else
         {
-            this->tim_->CCR3 = 0;
-            this->tim_->CCR4 = -pulse;
+            PWM_M2_A = 0;
+            PWM_M2_B = -pulse;
         }
         break;
     }
@@ -46,13 +79,13 @@ bool bolt::pwm::PWMTimerInterface::setPulse(int16_t speed)
     {
         if (pulse >= 0)
         {
-            this->tim_->CCR4 = pulse;
-            this->tim_->CCR1 = 0;
+            PWM_M3_A = pulse;
+            PWM_M3_B = 0;
         }
         else
         {
-            this->tim_->CCR4 = 0;
-            this->tim_->CCR1 = -pulse;
+            PWM_M3_A = 0;
+            PWM_M3_B = -pulse;
         }
         break;
     }
@@ -60,13 +93,13 @@ bool bolt::pwm::PWMTimerInterface::setPulse(int16_t speed)
     {
         if (pulse >= 0)
         {
-            this->tim_->CCR2 = pulse;
-            this->tim_->CCR3 = 0;
+            PWM_M4_A = pulse;
+            PWM_M4_B = 0;
         }
         else
         {
-            this->tim_->CCR2 = 0;
-            this->tim_->CCR3 = -pulse;
+            PWM_M4_A = 0;
+            PWM_M4_B = -pulse;
         }
         break;
     }
@@ -74,16 +107,4 @@ bool bolt::pwm::PWMTimerInterface::setPulse(int16_t speed)
     default:
         break;
     }
-
-    return 1;
-}
-
-int16_t bolt::pwm::PWMTimerInterface::ignore_dead_zone(int16_t pulse)
-{
-    if (pulse > 0)
-        return pulse + MOTOR_IGNORE_PULSE;
-    if (pulse < 0)
-        return pulse - MOTOR_IGNORE_PULSE;
-
-    return pulse;
 }

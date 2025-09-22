@@ -11,17 +11,20 @@ namespace bolt
     enum FrameType : uint8_t
     {
         FT_Ping = 0x01,
-        FT_SetMotor = 0x02
+        FT_MotorMove = 0x02,
+        FT_MotorStop = 0x03
     };
 
     struct PingFrame;
-    struct SetMotorFrame;
+    struct MotorMoveFrame;
+    struct MotorStopFrame;
 
     struct FrameVisitor
     {
         virtual ~FrameVisitor() {}
         virtual void visit(const PingFrame &f) = 0;
-        virtual void visit(const SetMotorFrame &f) = 0;
+        virtual void visit(const MotorMoveFrame &f) = 0;
+        virtual void visit(const MotorStopFrame &f) = 0;
     };
 
     struct Frame
@@ -39,12 +42,20 @@ namespace bolt
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 
-    struct SetMotorFrame : public Frame
+    struct MotorMoveFrame : public Frame
     {
-        uint8_t key;
-        uint32_t value;
+        uint8_t motor;
+        int16_t pulse;
 
-        SetMotorFrame() : Frame(FT_SetMotor), key(0), value(0) {}
+        MotorMoveFrame() : Frame(FT_MotorMove), motor(0), pulse(0) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct MotorStopFrame : public Frame
+    {
+        uint8_t brake;
+
+        MotorStopFrame() : Frame(FT_MotorStop), brake(0) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 

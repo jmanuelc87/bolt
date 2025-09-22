@@ -15,6 +15,7 @@
 #include "frames.hpp"
 #include "parser.hpp"
 #include "visitor.hpp"
+#include "peripherals.hpp"
 
 using bolt::AppVisitor;
 using bolt::Frame;
@@ -30,8 +31,6 @@ extern "C" osThreadId_t commandTaskHandle;
 extern "C" osThreadId_t processTaskHandle;
 
 extern "C" void AppPeripheralsInit();
-
-UartAsyncSerialPort *gUart1 = nullptr;
 
 extern "C" void vLed_Task(void *argument)
 {
@@ -121,11 +120,4 @@ extern "C" void vQuery_Task(void *argument)
             gUart1->transmit(m.data, m.size);
         }
     }
-}
-
-extern "C" void AppPeripheralsInit()
-{
-    static UartAsyncSerialPort port(&huart1);
-    UartAsyncSerialPort::registry().insert({&huart1, &port});
-    gUart1 = &port;
 }
