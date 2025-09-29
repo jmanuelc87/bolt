@@ -168,7 +168,7 @@ namespace bolt
         PingFrame ping_;
         MotorMoveFrame setmtr_;
         MotorStopFrame stop_;
-        ServoMoveFrame sm_;
+        PwmServoFrame sm_;
     };
 }
 

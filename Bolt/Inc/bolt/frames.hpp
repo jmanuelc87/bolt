@@ -19,7 +19,7 @@ namespace bolt
     struct PingFrame;
     struct MotorMoveFrame;
     struct MotorStopFrame;
-    struct ServoMoveFrame;
+    struct PwmServoFrame;
 
     struct FrameVisitor
     {
@@ -27,7 +27,7 @@ namespace bolt
         virtual void visit(const PingFrame &f) = 0;
         virtual void visit(const MotorMoveFrame &f) = 0;
         virtual void visit(const MotorStopFrame &f) = 0;
-        virtual void visit(const ServoMoveFrame &f) = 0;
+        virtual void visit(const PwmServoFrame &f) = 0;
     };
 
     struct Frame
@@ -63,12 +63,12 @@ namespace bolt
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 
-    struct ServoMoveFrame : public Frame
+    struct PwmServoFrame : public Frame
     {
         uint8_t servo;
         uint8_t angle;
 
-        ServoMoveFrame() : Frame(FT_ServoMove), servo(0), angle(0) {}
+        PwmServoFrame() : Frame(FT_ServoMove), servo(0), angle(0) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 

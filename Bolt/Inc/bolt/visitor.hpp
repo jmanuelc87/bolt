@@ -119,7 +119,7 @@ namespace bolt
             send_message("OK!");
         }
 
-        virtual void visit(const ServoMoveFrame &f)
+        virtual void visit(const PwmServoFrame &f)
         {
             gServo->setAngle(f.angle, f.servo);
 
