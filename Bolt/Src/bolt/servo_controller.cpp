@@ -1,5 +1,6 @@
 #include "controller/servo_controller.hpp"
 
+#include "cstring"
 #include "gpio.h"
 
 bolt::controller::ServoController::ServoController(TIM_HandleTypeDef *htim)
@@ -33,13 +34,13 @@ bool bolt::controller::ServoController::setPulse(int16_t pulse)
 
 bool bolt::controller::ServoController::setAngle(int16_t angle, uint8_t servo_id)
 {
-    float us = this->PwmServo_Angle_To_Us(angle);
+    float us = this->PwmServoAngleToUs(angle);
 
     this->g_pwm_pulse[servo_id] = us;
     return 1;
 }
 
-float bolt::controller::ServoController::PwmServo_Angle_To_Us(uint8_t angle)
+float bolt::controller::ServoController::PwmServoAngleToUs(uint8_t angle)
 {
     static constexpr float MIN_US = 500.0f;
     static constexpr float MAX_US = 2400.0f;
@@ -113,4 +114,129 @@ void bolt::controller::ServoController::decrementPerChannel()
 
     if (frame_ticks > 0)
         frame_ticks--;
+}
+
+bolt::controller::UartServoController::UartServoController(UART_HandleTypeDef *huart) : bolt::serial::UartAsyncSerialPort(huart)
+{
+    rxEventCallback = [this](uint16_t length)
+    {
+        uint8_t *data = this->getData();
+
+        for (uint8_t i = 0; i < length; ++i)
+        {
+            if (this->receiveData(data[i]))
+            {
+                ready_ = true;
+            }
+        }
+    };
+}
+
+bool bolt::controller::UartServoController::receiveData(uint8_t byte)
+{
+    switch (state_)
+    {
+    case S_WAIT_SOF:
+        if (byte == 0xFF)
+        {
+            state_ = S_TYPE;
+        }
+        break;
+
+    case S_TYPE:
+        if (byte == 0xF5)
+        {
+            state_ = S_PAYLOAD;
+        }
+        else
+        {
+            state_ = S_TYPE;
+        }
+        break;
+
+    case S_PAYLOAD:
+        buff_[idx_++] = byte;
+        if (idx_ >= 6)
+        {
+            state_ = S_EOF;
+        }
+        break;
+
+    case S_EOF:
+    {
+        uint16_t checksum = (~(buff_[0] + buff_[1] + buff_[2] + buff_[3] + buff_[4])) & 0xFF;
+        if (checksum == buff_[5])
+        {
+            memcpy(cur_, buff_, 6);
+            this->reset();
+            return true;
+        }
+        else
+        {
+            this->reset();
+        }
+    };
+    break;
+    }
+    return false;
+}
+
+void bolt::controller::UartServoController::setControl(uint8_t id, uint16_t pulse, uint16_t time)
+{
+    uint8_t s_id = id & 0xFF;
+    uint8_t len = 0x07;
+    uint8_t cmd = 0x03;
+    uint8_t addr = 0x2a;
+
+    if (pulse >= MAX_PULSE)
+        pulse = MEDIAN_VALUE;
+    else if (pulse < MIN_PULSE)
+        pulse = MEDIAN_VALUE;
+
+    uint8_t pos_h = (pulse >> 8) & 0xFF;
+    uint8_t pos_l = pulse & 0xFF;
+
+    uint8_t time_h = (time >> 8) & 0xFF;
+    uint8_t time_l = time & 0xFF;
+
+    uint8_t checksum = (~(s_id + len + cmd + addr + pos_h + pos_l + time_h + time_l)) & 0xFF;
+    uint8_t data[] = {0xFF, 0xFF, s_id, len, cmd, addr, pos_h, pos_l, time_h, time_l, checksum};
+
+    this->transmit(data, 11);
+}
+
+void bolt::controller::UartServoController::setControlAngle(uint8_t id)
+{
+    uint8_t s_id = id & 0xFF;
+    uint8_t len = 0x04;
+    uint8_t cmd = 0x02;
+    uint8_t param_h = 0x38;
+    uint8_t param_l = 0x02;
+
+    uint8_t checksum = (~(s_id + len + cmd + param_h + param_l)) & 0xFF;
+    uint8_t data[] = {0xFF, 0xFF, s_id, len, cmd, param_h, param_l, checksum};
+
+    this->transmit(data, 8);
+}
+
+void bolt::controller::UartServoController::reset()
+{
+    idx_ = 0;
+    buff_[0] = 0x00;
+    buff_[1] = 0x00;
+    buff_[2] = 0x00;
+    buff_[3] = 0x00;
+    buff_[4] = 0x00;
+    buff_[5] = 0x00;
+}
+
+uint16_t bolt::controller::UartServoController::getAngle()
+{
+    uint16_t value = cur_[3] << 8 | cur_[4];
+    return value;
+}
+
+bool bolt::controller::UartServoController::isReady()
+{
+    return ready_;
 }

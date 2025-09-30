@@ -12,6 +12,13 @@
 
 #include "definitions.hpp"
 
+#define MEDIAN_VALUE 2000
+
+#define MAX_PULSE 4000
+#define MIN_PULSE 96
+
+#define MAX_SERVO_NUM 6
+
 using bolt::pin::GpioOutputPin;
 using bolt::serial::UartHandleRegistry;
 
@@ -37,7 +44,7 @@ namespace bolt
             bool setPulse(int16_t pulse) override;
             bool setAngle(int16_t angle, uint8_t servo_id);
             void periodElapsed();
-            float PwmServo_Angle_To_Us(uint8_t angle);
+            float PwmServoAngleToUs(uint8_t angle);
 
             std::function<void()> timElapsedCompleteCallback;
 
@@ -54,9 +61,29 @@ namespace bolt
         class UartServoController : public bolt::serial::UartAsyncSerialPort
         {
         public:
-            explicit UartServoController(UART_HandleTypeDef *huart) : bolt::serial::UartAsyncSerialPort(huart) {}
+            explicit UartServoController(UART_HandleTypeDef *huart);
 
-            void control(uint8_t id, uint8_t pulse, uint16_t time);
+            void setControl(uint8_t id, uint16_t pulse, uint16_t time);
+            void setControlAngle(uint8_t id);
+            uint16_t getAngle();
+            bool isReady();
+
+        private:
+            enum State
+            {
+                S_WAIT_SOF,
+                S_TYPE,
+                S_PAYLOAD,
+                S_EOF,
+            } state_;
+
+            uint8_t idx_;
+            uint8_t cur_[6];
+            uint8_t buff_[6];
+            bool ready_;
+
+            bool receiveData(uint8_t current);
+            void reset();
         };
     }
 }
