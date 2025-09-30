@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "interface.hpp"
+#include "uart_handle_registry.hpp"
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
 
@@ -18,14 +19,6 @@ namespace bolt
         public:
             UartAsyncSerialPort(UART_HandleTypeDef *huart) : huart_(huart), bufferSize_(BUFF_SIZE)
             {
-                HAL_StatusTypeDef st = HAL_ERROR;
-
-                st = HAL_UART_RegisterCallback(huart_, HAL_UART_TX_COMPLETE_CB_ID, &C_TxCplt);
-                configASSERT(st == HAL_OK);
-
-                st = HAL_UART_RegisterRxEventCallback(huart_, &C_RxCplt);
-                configASSERT(st == HAL_OK);
-
                 this->receiveBuffer_ = new uint8_t[this->bufferSize_];
             }
 
@@ -33,9 +26,7 @@ namespace bolt
             {
                 delete[] this->receiveBuffer_;
                 HAL_UART_Abort_IT(huart_);
-                HAL_UART_UnRegisterCallback(huart_, HAL_UART_TX_COMPLETE_CB_ID);
-                HAL_UART_UnRegisterRxEventCallback(huart_);
-                UartAsyncSerialPort::registry().erase(huart_);
+                UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().erase(huart_);
             }
 
             int transmit(const uint8_t *data, uint16_t size) override;
@@ -45,26 +36,12 @@ namespace bolt
             std::function<void()> txCompleteCallback;
             std::function<void(uint16_t)> rxEventCallback;
 
-            static std::unordered_map<UART_HandleTypeDef *, UartAsyncSerialPort *> &registry()
-            {
-                static std::unordered_map<UART_HandleTypeDef *, UartAsyncSerialPort *> r;
-                return r;
-            }
+            friend class UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>;
 
-            static UartAsyncSerialPort *from(UART_HandleTypeDef *h)
-            {
-                auto it = registry().find(h);
-                return (it == registry().end()) ? nullptr : it->second;
-            }
-
-        private:
+        protected:
             UART_HandleTypeDef *huart_;
             uint8_t *receiveBuffer_;
             uint16_t bufferSize_;
-
-            static void C_TxCplt(UART_HandleTypeDef *h);
-            static void C_RxCplt(UART_HandleTypeDef *h, uint16_t Size);
-            static void C_Error(UART_HandleTypeDef *h);
         };
     }
 }

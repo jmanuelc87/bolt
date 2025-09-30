@@ -2,6 +2,25 @@
 
 #include "gpio.h"
 
+bolt::controller::ServoController::ServoController(TIM_HandleTypeDef *htim)
+    : htim_(htim)
+{
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        this->setAngle(90, i);
+    }
+
+    timElapsedCompleteCallback = [this]()
+    {
+        if (frame_ticks == 0)
+        {
+            this->zeroFrameTicks();
+        }
+
+        this->decrementPerChannel();
+    };
+}
+
 bool bolt::controller::ServoController::setPulse(int16_t pulse)
 {
     for (uint8_t i = 0; i < 4; i++)
@@ -46,7 +65,7 @@ float bolt::controller::ServoController::PwmServo_Angle_To_Us(uint8_t angle)
     return us;
 }
 
-void bolt::controller::ServoController::periodElapsed()
+void bolt::controller::ServoController::zeroFrameTicks()
 {
     GPIOC->BSRR = (GPIO_BSRR_BS0 | GPIO_BSRR_BS1 | GPIO_BSRR_BS2 | GPIO_BSRR_BS3);
 
@@ -63,18 +82,8 @@ void bolt::controller::ServoController::periodElapsed()
     frame_ticks = FRAME_TICKS;
 }
 
-void bolt::controller::ServoController::C_PeriodElapsed(TIM_HandleTypeDef *htim)
+void bolt::controller::ServoController::decrementPerChannel()
 {
-    auto *self = from(htim);
-    if (!self)
-        return;
-
-    // New frame?
-    if (frame_ticks == 0)
-    {
-        self->periodElapsed();
-    }
-
     // Decrement per-channel and drop pins low when they expire
     for (int i = 0; i < 4; i++)
     {

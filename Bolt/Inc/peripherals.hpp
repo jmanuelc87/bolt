@@ -12,6 +12,7 @@ using bolt::controller::MOTOR_ID_M3;
 using bolt::controller::MOTOR_ID_M4;
 using bolt::controller::MotorController;
 using bolt::controller::ServoController;
+using bolt::controller::UartServoController;
 using bolt::pin::GpioOutputPin;
 using bolt::serial::UartAsyncSerialPort;
 
@@ -23,11 +24,16 @@ MotorController *gMotor3 = nullptr;
 MotorController *gMotor4 = nullptr;
 
 ServoController *gServo = nullptr;
+UartServoController *gUartServo = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {
+    UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registerCallbacks(&huart1);
+    UartHandleRegistry<UartServoController, UART_HandleTypeDef>::registerCallbacks(&huart3);
+    UartHandleRegistry<ServoController, TIM_HandleTypeDef>::registerCallbacks(&htim1);
+
     static UartAsyncSerialPort port(&huart1);
-    UartAsyncSerialPort::registry().insert({&huart1, &port});
+    UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().insert({&huart1, &port});
     gUart1 = &port;
 
     static MotorController motor1(MOTOR_ID_M1);
@@ -43,8 +49,12 @@ extern "C" void AppPeripheralsInit()
     gMotor4 = &motor4;
 
     static ServoController servo(&htim7);
-    ServoController::registry().insert({&htim7, &servo});
+    UartHandleRegistry<ServoController, TIM_HandleTypeDef>::registry().insert({&htim7, &servo});
     gServo = &servo;
+
+    static UartServoController servoPort(&huart3);
+    UartHandleRegistry<UartServoController, UART_HandleTypeDef>::registry().insert({&huart3, &servoPort});
+    gUartServo = &servoPort;
 }
 
 #endif /* BOLT_PERIPHERALS_HPP */

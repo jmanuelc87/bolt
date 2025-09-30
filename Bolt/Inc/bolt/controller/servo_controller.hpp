@@ -5,10 +5,15 @@
 #include <cstdint>
 
 #include "interface/pin_interface.hpp"
+#include "interface/serial_interface.hpp"
+#include "interface/uart_handle_registry.hpp"
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
 
+#include "definitions.hpp"
+
 using bolt::pin::GpioOutputPin;
+using bolt::serial::UartHandleRegistry;
 
 namespace bolt
 {
@@ -26,50 +31,32 @@ namespace bolt
         class ServoController : public bolt::PWMTimer
         {
         public:
-            ServoController(TIM_HandleTypeDef *htim) : htim_(htim)
-            {
-                for (uint8_t i = 0; i < 4; i++)
-                {
-                    this->setAngle(90, i);
-                }
-
-                HAL_StatusTypeDef s = HAL_ERROR;
-                s = HAL_TIM_RegisterCallback(htim_, HAL_TIM_PERIOD_ELAPSED_CB_ID, &C_PeriodElapsed);
-                configASSERT(s == HAL_OK);
-
-                s = HAL_TIM_Base_Start_IT(htim_);
-                configASSERT(s == HAL_OK);
-            };
-
-            ~ServoController()
-            {
-                HAL_TIM_UnRegisterCallback(htim_, HAL_TIM_PERIOD_ELAPSED_CB_ID);
-                HAL_TIM_UnRegisterCallback(htim_, HAL_TIM_OC_DELAY_ELAPSED_CB_ID);
-            }
+            ServoController(TIM_HandleTypeDef *htim);
+            ~ServoController() {}
 
             bool setPulse(int16_t pulse) override;
             bool setAngle(int16_t angle, uint8_t servo_id);
             void periodElapsed();
             float PwmServo_Angle_To_Us(uint8_t angle);
 
-            static std::unordered_map<TIM_HandleTypeDef *, ServoController *> &registry()
-            {
-                static std::unordered_map<TIM_HandleTypeDef *, ServoController *> r;
-                return r;
-            }
+            std::function<void()> timElapsedCompleteCallback;
 
-            static ServoController *from(TIM_HandleTypeDef *h)
-            {
-                auto it = registry().find(h);
-                return (it == registry().end()) ? nullptr : it->second;
-            }
+            friend class UartHandleRegistry<ServoController, UART_HandleTypeDef>;
 
         private:
             TIM_HandleTypeDef *htim_;
-
             float g_pwm_pulse[4];
 
-            static void C_PeriodElapsed(TIM_HandleTypeDef *htim);
+            void zeroFrameTicks();
+            void decrementPerChannel();
+        };
+
+        class UartServoController : public bolt::serial::UartAsyncSerialPort
+        {
+        public:
+            explicit UartServoController(UART_HandleTypeDef *huart) : bolt::serial::UartAsyncSerialPort(huart) {}
+
+            void control(uint8_t id, uint8_t pulse, uint16_t time);
         };
     }
 }
