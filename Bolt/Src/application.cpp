@@ -92,10 +92,10 @@ extern "C" void vCommand_Task(void *argument)
         if (s == osOK)
             osThreadFlagsSet(ledTaskHandle, 0x01);
 
-        gUart1->startReception();
+        gUart1->receiveToIdle();
     };
 
-    gUart1->startReception();
+    gUart1->receiveToIdle();
 
     while (1)
     {

@@ -6,6 +6,8 @@
 #include "controller/motor_controller.hpp"
 #include "controller/servo_controller.hpp"
 
+#include "definitions.hpp"
+
 using bolt::controller::MOTOR_ID_M1;
 using bolt::controller::MOTOR_ID_M2;
 using bolt::controller::MOTOR_ID_M3;
@@ -32,7 +34,7 @@ extern "C" void AppPeripheralsInit()
     UartHandleRegistry<UartServoController, UART_HandleTypeDef>::registerCallbacks(&huart3);
     UartHandleRegistry<ServoController, TIM_HandleTypeDef>::registerCallbacks(&htim1);
 
-    static UartAsyncSerialPort port(&huart1);
+    static UartAsyncSerialPort port(&huart1, BUFF_SIZE);
     UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().insert({&huart1, &port});
     gUart1 = &port;
 
@@ -52,7 +54,7 @@ extern "C" void AppPeripheralsInit()
     UartHandleRegistry<ServoController, TIM_HandleTypeDef>::registry().insert({&htim7, &servo});
     gServo = &servo;
 
-    static UartServoController servoPort(&huart3);
+    static UartServoController servoPort(&huart3, 10);
     UartHandleRegistry<UartServoController, UART_HandleTypeDef>::registry().insert({&huart3, &servoPort});
     gUartServo = &servoPort;
 }

@@ -17,7 +17,7 @@ namespace bolt
         class UartAsyncSerialPort : public bolt::AsyncSerialPort
         {
         public:
-            UartAsyncSerialPort(UART_HandleTypeDef *huart) : huart_(huart), bufferSize_(BUFF_SIZE)
+            UartAsyncSerialPort(UART_HandleTypeDef *huart, uint8_t size) : huart_(huart), bufferSize_(size)
             {
                 this->receiveBuffer_ = new uint8_t[this->bufferSize_];
             }
@@ -29,12 +29,15 @@ namespace bolt
                 UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().erase(huart_);
             }
 
+            int transmitAndForget(const uint8_t * data, uint16_t size);
             int transmit(const uint8_t *data, uint16_t size) override;
-            void startReception();
+            void receiveToIdle();
+            void receive(uint8_t size);
             uint8_t *getData();
 
             std::function<void()> txCompleteCallback;
             std::function<void(uint16_t)> rxEventCallback;
+            std::function<void()> rxCompleteCallback;
 
             friend class UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>;
 

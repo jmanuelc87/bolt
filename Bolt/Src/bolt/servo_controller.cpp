@@ -1,10 +1,12 @@
 #include "controller/servo_controller.hpp"
 
+#include <cstdio>
+
 #include "cstring"
 #include "gpio.h"
+#include "utils.h"
 
-bolt::controller::ServoController::ServoController(TIM_HandleTypeDef *htim)
-    : htim_(htim)
+bolt::controller::ServoController::ServoController(TIM_HandleTypeDef *htim) : htim_(htim)
 {
     for (uint8_t i = 0; i < 4; i++)
     {
@@ -116,20 +118,19 @@ void bolt::controller::ServoController::decrementPerChannel()
         frame_ticks--;
 }
 
-bolt::controller::UartServoController::UartServoController(UART_HandleTypeDef *huart) : bolt::serial::UartAsyncSerialPort(huart)
+bolt::controller::UartServoController::UartServoController(UART_HandleTypeDef *huart, uint8_t size) : bolt::serial::UartAsyncSerialPort(huart, size)
 {
-    rxEventCallback = [this](uint16_t length)
+    rxCompleteCallback = [this]()
     {
         uint8_t *data = this->getData();
 
-        for (uint8_t i = 0; i < length; ++i)
+        if (this->receiveData(data[0]))
         {
-            if (this->receiveData(data[i]))
-            {
-                ready_ = true;
-            }
+            ready_ = true;
         }
+        this->receive(1);
     };
+    this->receive(1);
 }
 
 bool bolt::controller::UartServoController::receiveData(uint8_t byte)
@@ -137,46 +138,43 @@ bool bolt::controller::UartServoController::receiveData(uint8_t byte)
     switch (state_)
     {
     case S_WAIT_SOF:
-        if (byte == 0xFF)
+        if (byte == 0xff)
         {
+            buff_[0] = 0xff;
             state_ = S_TYPE;
+        }
+        else if (byte == 0xf5)
+        {
+            buff_[0] = 0xff;
+            buff_[1] = 0xf5;
+            state_ = S_PAYLOAD;
+            idx_ = 2;
         }
         break;
 
     case S_TYPE:
         if (byte == 0xF5)
         {
+            buff_[1] = 0xF5;
+            idx_ = 2;
             state_ = S_PAYLOAD;
         }
         else
         {
+            this->reset();
             state_ = S_TYPE;
         }
         break;
 
     case S_PAYLOAD:
-        buff_[idx_++] = byte;
-        if (idx_ >= 6)
+        buff_[idx_] = byte;
+        idx_++;
+        if (idx_ >= 8)
         {
-            state_ = S_EOF;
-        }
-        break;
-
-    case S_EOF:
-    {
-        uint16_t checksum = (~(buff_[0] + buff_[1] + buff_[2] + buff_[3] + buff_[4])) & 0xFF;
-        if (checksum == buff_[5])
-        {
-            memcpy(cur_, buff_, 6);
-            this->reset();
+            state_ = S_WAIT_SOF;
             return true;
         }
-        else
-        {
-            this->reset();
-        }
-    };
-    break;
+        break;
     }
     return false;
 }
@@ -186,7 +184,7 @@ void bolt::controller::UartServoController::setControl(uint8_t id, uint16_t puls
     uint8_t s_id = id & 0xFF;
     uint8_t len = 0x07;
     uint8_t cmd = 0x03;
-    uint8_t addr = 0x2a;
+    uint8_t addr = 0x2A;
 
     if (pulse >= MAX_PULSE)
         pulse = MEDIAN_VALUE;
@@ -202,7 +200,7 @@ void bolt::controller::UartServoController::setControl(uint8_t id, uint16_t puls
     uint8_t checksum = (~(s_id + len + cmd + addr + pos_h + pos_l + time_h + time_l)) & 0xFF;
     uint8_t data[] = {0xFF, 0xFF, s_id, len, cmd, addr, pos_h, pos_l, time_h, time_l, checksum};
 
-    this->transmit(data, 11);
+    this->transmitAndForget(data, sizeof(data));
 }
 
 void bolt::controller::UartServoController::setControlAngle(uint8_t id)
@@ -216,7 +214,7 @@ void bolt::controller::UartServoController::setControlAngle(uint8_t id)
     uint8_t checksum = (~(s_id + len + cmd + param_h + param_l)) & 0xFF;
     uint8_t data[] = {0xFF, 0xFF, s_id, len, cmd, param_h, param_l, checksum};
 
-    this->transmit(data, 8);
+    this->transmitAndForget(data, sizeof(data));
 }
 
 void bolt::controller::UartServoController::reset()
@@ -232,6 +230,7 @@ void bolt::controller::UartServoController::reset()
 
 uint16_t bolt::controller::UartServoController::getAngle()
 {
+    
     uint16_t value = cur_[3] << 8 | cur_[4];
     return value;
 }
@@ -239,4 +238,9 @@ uint16_t bolt::controller::UartServoController::getAngle()
 bool bolt::controller::UartServoController::isReady()
 {
     return ready_;
+}
+
+void bolt::controller::UartServoController::setReady(bool st)
+{
+    ready_ = st;
 }

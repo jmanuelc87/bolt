@@ -58,21 +58,21 @@ const osThreadAttr_t ledTask_attributes = {
 osThreadId_t commandTaskHandle;
 const osThreadAttr_t commandTask_attributes = {
   .name = "commandTask",
-  .stack_size = 256 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for queryTask */
 osThreadId_t queryTaskHandle;
 const osThreadAttr_t queryTask_attributes = {
   .name = "queryTask",
-  .stack_size = 256 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for processTask */
 osThreadId_t processTaskHandle;
 const osThreadAttr_t processTask_attributes = {
   .name = "processTask",
-  .stack_size = 256 * 4,
+  .stack_size = 384 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 

@@ -34,7 +34,9 @@ namespace bolt
                     HAL_StatusTypeDef st;
                     st = HAL_UART_RegisterCallback(h, HAL_UART_TX_COMPLETE_CB_ID, &UartHandleRegistry::C_TxCplt);
                     configASSERT(st == HAL_OK);
-                    st = HAL_UART_RegisterRxEventCallback(h, &UartHandleRegistry::C_RxCplt);
+                    st = HAL_UART_RegisterRxEventCallback(h, &UartHandleRegistry::C_RxEvent);
+                    configASSERT(st == HAL_OK);
+                    st = HAL_UART_RegisterCallback(h, HAL_UART_RX_COMPLETE_CB_ID, &UartHandleRegistry::C_RxCplt);
                     configASSERT(st == HAL_OK);
                 }
                 else if constexpr (std::is_same_v<HandleType, TIM_HandleTypeDef>)
@@ -67,11 +69,20 @@ namespace bolt
                     inst->txCompleteCallback();
                 }
             }
-            static void C_RxCplt(HandleType *h, uint16_t Size)
+
+            static void C_RxEvent(HandleType *h, uint16_t Size)
             {
                 if (auto *inst = from(h); inst && inst->rxEventCallback)
                 {
                     inst->rxEventCallback(Size);
+                }
+            }
+
+            static void C_RxCplt(HandleType *h)
+            {
+                if (auto *inst = from(h); inst && inst->rxCompleteCallback)
+                {
+                    inst->rxCompleteCallback();
                 }
             }
 

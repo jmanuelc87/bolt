@@ -15,7 +15,6 @@ namespace bolt
     public:
         FrameParser() { reset(); }
 
-        // Feed bytes one by one (e.g., from UART RX IRQ or DMA ring).
         // Returns true if a frame was parsed into outRaw.
         bool push(uint8_t byte, RawFrame &outRaw)
         {
@@ -156,10 +155,28 @@ namespace bolt
                 if (rf.len != 2)
                     return 0;
 
-                sm_.servo = rf.payload[0];
-                sm_.angle = rf.payload[1];
+                psm_.servo = rf.payload[0];
+                psm_.angle = rf.payload[1];
 
-                return &sm_;
+                return &psm_;
+
+            case FT_UartServoMove:
+                if (rf.len != 5)
+                    return 0;
+
+                usm_.servo = rf.payload[0];
+                usm_.pulse = u16be(&rf.payload[1]);
+                usm_.time = u16be(&rf.payload[3]);
+
+                return &usm_;
+
+            case FT_UartServoGetAngle:
+                if (rf.len != 1)
+                    return 0;
+
+                usgam_.servo = rf.payload[0];
+
+                return &usgam_;
             }
             return 0;
         }
@@ -168,7 +185,9 @@ namespace bolt
         PingFrame ping_;
         MotorMoveFrame setmtr_;
         MotorStopFrame stop_;
-        PwmServoFrame sm_;
+        PwmServoFrame psm_;
+        UartServoFrame usm_;
+        UartServoGetAngleFrame usgam_;
     };
 }
 

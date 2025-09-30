@@ -61,12 +61,15 @@ namespace bolt
         class UartServoController : public bolt::serial::UartAsyncSerialPort
         {
         public:
-            explicit UartServoController(UART_HandleTypeDef *huart);
+            UartServoController(UART_HandleTypeDef *huart, uint8_t size);
 
             void setControl(uint8_t id, uint16_t pulse, uint16_t time);
             void setControlAngle(uint8_t id);
-            uint16_t getAngle();
             bool isReady();
+            void setReady(bool st);
+            uint16_t getAngle();
+
+            bool receiveData(uint8_t current);
 
         private:
             enum State
@@ -74,15 +77,13 @@ namespace bolt
                 S_WAIT_SOF,
                 S_TYPE,
                 S_PAYLOAD,
-                S_EOF,
             } state_;
 
             uint8_t idx_;
-            uint8_t cur_[6];
-            uint8_t buff_[6];
-            bool ready_;
+            uint8_t cur_[8];
+            uint8_t buff_[8];
+            bool ready_ = false;
 
-            bool receiveData(uint8_t current);
             void reset();
         };
     }
