@@ -1,115 +1,29 @@
 #include "controller/motor_controller.hpp"
 
-bool bolt::controller::MotorController::setPulse(int16_t speed)
+void bolt::controller::MotorController::setSpeed(uint8_t motor_id, int16_t pulse)
 {
-    int16_t pulse = this->ignore_dead_zone(speed);
+    pulse = ignore_dead_zone(pulse);
+    pulse = clamp(pulse);
 
-    if (pulse >= MOTOR_MAX_PULSE)
-        pulse = MOTOR_MAX_PULSE;
-    if (pulse <= -MOTOR_MAX_PULSE)
-        pulse = -MOTOR_MAX_PULSE;
+    if (motor_id >= 4)
+        return;
 
-    switch (this->motor_id_)
+    const auto &pair = motor2ports_[motor_id];
+
+    pulse = -pulse;
+    if (pulse >= 0)
     {
-    case MOTOR_ID_M1:
-    {
-        pulse = -pulse;
-        if (pulse >= 0)
-        {
-            PWM_M1_A = pulse;
-            PWM_M1_B = 0;
-        }
-        else
-        {
-            PWM_M1_A = 0;
-            PWM_M1_B = -pulse;
-        }
-        break;
+        pulse_motor_[pair.first] = pulse;
+        pulse_motor_[pair.second] = 0;
     }
-    case MOTOR_ID_M2:
+    else
     {
-        pulse = -pulse;
-        if (pulse >= 0)
-        {
-            PWM_M2_A = pulse;
-            PWM_M2_B = 0;
-        }
-        else
-        {
-            PWM_M2_A = 0;
-            PWM_M2_B = -pulse;
-        }
-        break;
+        pulse_motor_[pair.second] = 0;
+        pulse_motor_[pair.first] = -pulse;
     }
 
-    case MOTOR_ID_M3:
-    {
-        if (pulse >= 0)
-        {
-            PWM_M3_A = pulse;
-            PWM_M3_B = 0;
-        }
-        else
-        {
-            PWM_M3_A = 0;
-            PWM_M3_B = -pulse;
-        }
-        break;
-    }
-    case MOTOR_ID_M4:
-    {
-        if (pulse >= 0)
-        {
-            PWM_M4_A = pulse;
-            PWM_M4_B = 0;
-        }
-        else
-        {
-            PWM_M4_A = 0;
-            PWM_M4_B = -pulse;
-        }
-        break;
-    }
-
-    default:
-        break;
-    }
-
-    return 1;
-}
-
-bool bolt::controller::MotorController::stop(uint8_t brake)
-{
-    if (brake != 0)
-        brake = 1;
-
-    switch (this->motor_id_)
-    {
-    case MOTOR_ID_M1:
-        PWM_M1_A = brake * MOTOR_MAX_PULSE;
-        PWM_M1_B = brake * MOTOR_MAX_PULSE;
-        break;
-
-    case MOTOR_ID_M2:
-        PWM_M2_A = brake * MOTOR_MAX_PULSE;
-        PWM_M2_B = brake * MOTOR_MAX_PULSE;
-        break;
-
-    case MOTOR_ID_M3:
-        PWM_M3_A = brake * MOTOR_MAX_PULSE;
-        PWM_M3_B = brake * MOTOR_MAX_PULSE;
-        break;
-
-    case MOTOR_ID_M4:
-        PWM_M4_A = brake * MOTOR_MAX_PULSE;
-        PWM_M4_B = brake * MOTOR_MAX_PULSE;
-        break;
-
-    default:
-        break;
-    }
-
-    return 1;
+    port1_->setPulses(pulse_motor_[0], pulse_motor_[1], pulse_motor_[2], pulse_motor_[3]);
+    port2_->setPulses(pulse_motor_[4], pulse_motor_[5], pulse_motor_[6], pulse_motor_[7]);
 }
 
 int16_t bolt::controller::MotorController::ignore_dead_zone(int16_t pulse)
@@ -120,4 +34,14 @@ int16_t bolt::controller::MotorController::ignore_dead_zone(int16_t pulse)
         return pulse - MOTOR_IGNORE_PULSE;
 
     return pulse;
+}
+
+int16_t bolt::controller::MotorController::clamp(int16_t pulse)
+{
+    if (pulse > MAX_MOTOR_PULSE)
+        pulse = MAX_MOTOR_PULSE;
+    if (pulse <= MAX_MOTOR_PULSE)
+        pulse = -MAX_MOTOR_PULSE;
+
+    return MAX_MOTOR_PULSE;
 }

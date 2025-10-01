@@ -4,11 +4,13 @@
 #include <unordered_map>
 
 #include "interface.hpp"
-#include "uart_handle_registry.hpp"
+#include "registry/handle_registry.hpp"
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
 
 #include "definitions.hpp"
+
+using bolt::registry::HandleRegistry;
 
 namespace bolt
 {
@@ -20,16 +22,18 @@ namespace bolt
             UartAsyncSerialPort(UART_HandleTypeDef *huart, uint8_t size) : huart_(huart), bufferSize_(size)
             {
                 this->receiveBuffer_ = new uint8_t[this->bufferSize_];
+                HandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registerCallbacks(huart_);
+                HandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().insert({huart_, this});
             }
 
             ~UartAsyncSerialPort()
             {
                 delete[] this->receiveBuffer_;
                 HAL_UART_Abort_IT(huart_);
-                UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().erase(huart_);
+                HandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>::registry().erase(huart_);
             }
 
-            int transmitAndForget(const uint8_t * data, uint16_t size);
+            int transmitAndForget(const uint8_t *data, uint16_t size);
             int transmit(const uint8_t *data, uint16_t size) override;
             void receiveToIdle();
             void receive(uint8_t size);
@@ -39,7 +43,7 @@ namespace bolt
             std::function<void(uint16_t)> rxEventCallback;
             std::function<void()> rxCompleteCallback;
 
-            friend class UartHandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>;
+            friend class HandleRegistry<UartAsyncSerialPort, UART_HandleTypeDef>;
 
         protected:
             UART_HandleTypeDef *huart_;

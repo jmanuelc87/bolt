@@ -6,7 +6,7 @@
 
 #include "interface/pin_interface.hpp"
 #include "interface/serial_interface.hpp"
-#include "interface/uart_handle_registry.hpp"
+#include "registry/handle_registry.hpp"
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
 
@@ -20,42 +20,14 @@
 #define MAX_SERVO_NUM 6
 
 using bolt::pin::GpioOutputPin;
-using bolt::serial::UartHandleRegistry;
+using bolt::registry::HandleRegistry;
 
 namespace bolt
 {
     namespace controller
     {
-        // how often TIM7 interrupt fires (us)
-        static constexpr uint16_t STEP_US = 50;
-        static constexpr uint16_t FRAME_US = 20000; // 20ms frame
-        static constexpr uint16_t FRAME_TICKS = FRAME_US / STEP_US;
-
-        // per-channel countdowns
-        static volatile uint16_t ch_ticks[4];
-        static volatile uint16_t frame_ticks = FRAME_TICKS;
-
         class ServoController : public bolt::PWMTimer
         {
-        public:
-            ServoController(TIM_HandleTypeDef *htim);
-            ~ServoController() {}
-
-            bool setPulse(int16_t pulse) override;
-            bool setAngle(int16_t angle, uint8_t servo_id);
-            void periodElapsed();
-            float PwmServoAngleToUs(uint8_t angle);
-
-            std::function<void()> timElapsedCompleteCallback;
-
-            friend class UartHandleRegistry<ServoController, UART_HandleTypeDef>;
-
-        private:
-            TIM_HandleTypeDef *htim_;
-            float g_pwm_pulse[4];
-
-            void zeroFrameTicks();
-            void decrementPerChannel();
         };
 
         class UartServoController : public bolt::serial::UartAsyncSerialPort
@@ -68,8 +40,6 @@ namespace bolt
             bool isReady();
             void setReady(bool st);
             uint16_t getAngle();
-
-            bool receiveData(uint8_t current);
 
         private:
             enum State
@@ -85,6 +55,7 @@ namespace bolt
             bool ready_ = false;
 
             void reset();
+            bool receiveData(uint8_t current);
         };
     }
 }

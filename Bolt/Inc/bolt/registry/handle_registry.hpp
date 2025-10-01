@@ -1,5 +1,5 @@
-#ifndef BOLT_UART_HANDLE_REGISTRY_HPP
-#define BOLT_UART_HANDLE_REGISTRY_HPP
+#ifndef BOLT_HANDLE_REGISTRY_HPP
+#define BOLT_HANDLE_REGISTRY_HPP
 
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
@@ -8,10 +8,10 @@
 
 namespace bolt
 {
-    namespace serial
+    namespace registry
     {
         template <typename Controller, typename HandleType>
-        class UartHandleRegistry
+        class HandleRegistry
         {
         public:
             static std::unordered_map<HandleType *, Controller *> &registry()
@@ -32,19 +32,18 @@ namespace bolt
                 if constexpr (std::is_same_v<HandleType, UART_HandleTypeDef>)
                 {
                     HAL_StatusTypeDef st;
-                    st = HAL_UART_RegisterCallback(h, HAL_UART_TX_COMPLETE_CB_ID, &UartHandleRegistry::C_TxCplt);
+                    st = HAL_UART_RegisterCallback(h, HAL_UART_TX_COMPLETE_CB_ID, &HandleRegistry::C_TxCplt);
                     configASSERT(st == HAL_OK);
-                    st = HAL_UART_RegisterRxEventCallback(h, &UartHandleRegistry::C_RxEvent);
+                    st = HAL_UART_RegisterRxEventCallback(h, &HandleRegistry::C_RxEvent);
                     configASSERT(st == HAL_OK);
-                    st = HAL_UART_RegisterCallback(h, HAL_UART_RX_COMPLETE_CB_ID, &UartHandleRegistry::C_RxCplt);
+                    st = HAL_UART_RegisterCallback(h, HAL_UART_RX_COMPLETE_CB_ID, &HandleRegistry::C_RxCplt);
                     configASSERT(st == HAL_OK);
                 }
                 else if constexpr (std::is_same_v<HandleType, TIM_HandleTypeDef>)
                 {
                     HAL_StatusTypeDef st;
-                    st = HAL_TIM_RegisterCallback(h, HAL_TIM_PERIOD_ELAPSED_CB_ID, &UartHandleRegistry::C_TimElapsedCplt);
+                    st = HAL_TIM_RegisterCallback(h, HAL_TIM_PERIOD_ELAPSED_CB_ID, &HandleRegistry::C_TimPeriodElapsed);
                     configASSERT(st == HAL_OK);
-                    // Add more TIM event callback registrations if needed
                 }
             }
 
@@ -86,7 +85,7 @@ namespace bolt
                 }
             }
 
-            static void C_TimElapsedCplt(TIM_HandleTypeDef *h)
+            static void C_TimPeriodElapsed(TIM_HandleTypeDef *h)
             {
                 if (auto *inst = from(h); inst && inst->timElapsedCompleteCallback)
                 {
@@ -97,4 +96,4 @@ namespace bolt
     }
 }
 
-#endif /* BOLT_UART_HANDLE_REGISTRY_HPP */
+#endif /* BOLT_HANDLE_REGISTRY_HPP */

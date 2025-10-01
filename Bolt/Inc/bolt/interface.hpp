@@ -4,6 +4,8 @@
 #include <functional>
 #include <cstdint>
 
+#include "stm32f1xx_hal.h"
+
 namespace bolt
 {
     class OutputPin
@@ -34,10 +36,26 @@ namespace bolt
         virtual bool sendMessage(uint32_t id, const uint8_t *data, uint8_t len) = 0;
     };
 
-    class PWMTimer
+    class Timer
+    {
+    };
+
+    class PWMTimer : public Timer
     {
     public:
-        virtual bool setPulse(int16_t pulse) = 0;
+        virtual void setPulses(int16_t pulse1, int16_t pulse2, int16_t pulse3, int16_t pulse4) = 0;
+    };
+
+    class CountTimer : public Timer
+    {
+    public:
+        CountTimer(TIM_HandleTypeDef *htim, uint32_t channels) : htim_(htim), channels_(channels) {}
+
+        virtual uint32_t getCount() = 0;
+
+    protected:
+        TIM_HandleTypeDef *htim_;
+        uint32_t channels_;
     };
 }
 

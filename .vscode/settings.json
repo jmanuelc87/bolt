@@ -58,7 +58,12 @@
     "stm32f1xx_hal.h": "c",
     "cstring": "cpp",
     "cerrno": "cpp",
-    "climits": "cpp"
+    "climits": "cpp",
+    "thread": "cpp",
+    "executor": "cpp",
+    "future": "cpp",
+    "mutex": "cpp",
+    "list": "cpp"
   },
   "launches": {
     "DebugMicrocontroller": "Debug Microcontroller - STLink-V3(bolt)"

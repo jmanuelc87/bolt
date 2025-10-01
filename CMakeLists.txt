@@ -54,6 +54,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/pin_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/serial_interface.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/timer_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/led_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/motor_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/servo_controller.cpp
