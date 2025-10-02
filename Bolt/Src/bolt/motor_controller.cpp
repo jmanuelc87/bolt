@@ -18,8 +18,8 @@ void bolt::controller::MotorController::setSpeed(uint8_t motor_id, int16_t pulse
     }
     else
     {
-        pulse_motor_[pair.second] = 0;
-        pulse_motor_[pair.first] = -pulse;
+        pulse_motor_[pair.first] = 0;
+        pulse_motor_[pair.second] = -pulse;
     }
 
     port1_->setPulses(pulse_motor_[0], pulse_motor_[1], pulse_motor_[2], pulse_motor_[3]);
@@ -40,8 +40,8 @@ int16_t bolt::controller::MotorController::clamp(int16_t pulse)
 {
     if (pulse > MAX_MOTOR_PULSE)
         pulse = MAX_MOTOR_PULSE;
-    if (pulse <= MAX_MOTOR_PULSE)
+    if (pulse <= -MAX_MOTOR_PULSE)
         pulse = -MAX_MOTOR_PULSE;
 
-    return MAX_MOTOR_PULSE;
+    return pulse;
 }

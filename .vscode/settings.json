@@ -63,7 +63,9 @@
     "executor": "cpp",
     "future": "cpp",
     "mutex": "cpp",
-    "list": "cpp"
+    "list": "cpp",
+    "io_context": "cpp",
+    "stop_token": "cpp"
   },
   "launches": {
     "DebugMicrocontroller": "Debug Microcontroller - STLink-V3(bolt)"

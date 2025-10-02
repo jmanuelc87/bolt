@@ -36,16 +36,19 @@ namespace bolt
         class PWMSyncTimerPort : public PWMTimerPort
         {
         public:
-            PWMSyncTimerPort(TIM_HandleTypeDef *htim, uint32_t chan_pwm, uint32_t chan_pwmn) : PWMTimerPort(htim)
+            PWMSyncTimerPort(TIM_HandleTypeDef *htim, int32_t chan_pwm[4], int32_t chan_pwmn[4]) : PWMTimerPort(htim)
             {
-                if (chan_pwm != 0)
+                for (uint8_t i = 0; i < 4; i++)
                 {
-                    HAL_TIM_PWM_Start(htim_, chan_pwm);
-                }
+                    if (chan_pwm[i] != -1)
+                    {
+                        HAL_TIM_PWM_Start(htim_, chan_pwm[i]);
+                    }
 
-                if (chan_pwmn != 0)
-                {
-                    HAL_TIMEx_PWMN_Start(htim_, chan_pwmn);
+                    if (chan_pwmn[i] != -1)
+                    {
+                        HAL_TIMEx_PWMN_Start(htim_, chan_pwmn[i]);
+                    }
                 }
             }
 

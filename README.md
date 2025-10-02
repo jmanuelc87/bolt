@@ -41,7 +41,7 @@ AA 04 02 00 3C D7 8E 55
 
 #### Serial Servo Move Frame
 
-servo_id == 0 values from 1 to 254
+servo_id == 1 values from 1 to 254
 pulse == 2000 values 96 to 3999
 time == 500 values 0 to 2000
 

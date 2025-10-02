@@ -33,8 +33,15 @@ extern "C" void AppPeripheralsInit()
     static UartServoController servoPort(&huart3, 10);
     gUartServo = &servoPort;
 
-    PWMSyncTimerPort syncTimerPort1(&htim1, TIM_CHANNEL_1 | TIM_CHANNEL_4, TIM_CHANNEL_2 | TIM_CHANNEL_3);
-    PWMSyncTimerPort syncTimerPort2(&htim8, TIM_CHANNEL_ALL, 0);
+    int32_t ch_pwm1[4] = {TIM_CHANNEL_1, TIM_CHANNEL_4, -1, -1};
+    int32_t ch_pwmn1[4] = {TIM_CHANNEL_2, TIM_CHANNEL_3, -1, -1};
+
+    static PWMSyncTimerPort syncTimerPort1(&htim1, ch_pwm1, ch_pwmn1);
+
+    int32_t ch_pwm2[4] = {TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4};
+    int32_t ch_pwmn2[4] = {-1, -1, -1, -1};
+
+    static PWMSyncTimerPort syncTimerPort2(&htim8, ch_pwm2, ch_pwmn2);
 
     static MotorController motorController(&syncTimerPort1, &syncTimerPort2);
     gMotorController = &motorController;
