@@ -50,7 +50,7 @@ namespace bolt
             } state_;
 
             uint8_t idx_;
-            uint8_t cur_[8];
+            uint8_t curr_[8];
             uint8_t buff_[8];
             bool ready_ = false;
 

@@ -110,15 +110,15 @@ bool bolt::controller::UartServoController::receiveData(uint8_t byte)
     switch (state_)
     {
     case S_WAIT_SOF:
-        if (byte == 0xff)
+        if (byte == 0xFF)
         {
-            buff_[0] = 0xff;
+            buff_[0] = 0xFF;
             state_ = S_TYPE;
         }
-        else if (byte == 0xf5)
+        else if (byte == 0xF5)
         {
-            buff_[0] = 0xff;
-            buff_[1] = 0xf5;
+            buff_[0] = 0xFF;
+            buff_[1] = 0xF5;
             state_ = S_PAYLOAD;
             idx_ = 2;
         }
@@ -134,7 +134,7 @@ bool bolt::controller::UartServoController::receiveData(uint8_t byte)
         else
         {
             this->reset();
-            state_ = S_TYPE;
+            state_ = S_WAIT_SOF;
         }
         break;
 
@@ -143,6 +143,8 @@ bool bolt::controller::UartServoController::receiveData(uint8_t byte)
         idx_++;
         if (idx_ >= 8)
         {
+            memcpy(curr_, buff_, 8);
+            this->reset();
             state_ = S_WAIT_SOF;
             return true;
         }
@@ -203,7 +205,7 @@ void bolt::controller::UartServoController::reset()
 uint16_t bolt::controller::UartServoController::getAngle()
 {
 
-    uint16_t value = cur_[3] << 8 | cur_[4];
+    uint16_t value = curr_[5] << 8 | curr_[6];
     return value;
 }
 

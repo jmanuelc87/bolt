@@ -44,11 +44,11 @@ namespace bolt
         virtual void visit(const UartServoGetAngleFrame &f)
         {
             gUartServo->setControlAngle(f.servo);
-            int i = 5;
+            int i = 15;
 
             while (--i > 0 && !gUartServo->isReady())
             {
-                vTaskDelay(pdMS_TO_TICKS(2));
+                vTaskDelay(pdMS_TO_TICKS(1));
             }
 
             if (i > 0)
