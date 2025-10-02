@@ -36,6 +36,7 @@ namespace bolt
             ~MotorController() {}
 
             void setSpeed(uint8_t motor_id, int16_t pulse);
+            void stop(uint8_t motor_id, uint8_t brake);
 
         private:
             PWMSyncTimerPort *port1_;

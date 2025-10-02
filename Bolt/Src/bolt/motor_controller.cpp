@@ -26,6 +26,28 @@ void bolt::controller::MotorController::setSpeed(uint8_t motor_id, int16_t pulse
     port2_->setPulses(pulse_motor_[4], pulse_motor_[5], pulse_motor_[6], pulse_motor_[7]);
 }
 
+void bolt::controller::MotorController::stop(uint8_t motor_id, uint8_t brake)
+{
+    if (motor_id >= 4)
+        return;
+
+    const auto &pair = motor2ports_[motor_id];
+
+    if (brake > 0)
+    {
+        pulse_motor_[pair.first] = MAX_MOTOR_PULSE;
+        pulse_motor_[pair.second] = MAX_MOTOR_PULSE;
+    }
+    else
+    {
+        pulse_motor_[pair.first] = 0;
+        pulse_motor_[pair.second] = 0;
+    }
+
+    port1_->setPulses(pulse_motor_[0], pulse_motor_[1], pulse_motor_[2], pulse_motor_[3]);
+    port2_->setPulses(pulse_motor_[4], pulse_motor_[5], pulse_motor_[6], pulse_motor_[7]);
+}
+
 int16_t bolt::controller::MotorController::ignore_dead_zone(int16_t pulse)
 {
     if (pulse > 0)

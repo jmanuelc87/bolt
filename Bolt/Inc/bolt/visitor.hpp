@@ -27,6 +27,7 @@ namespace bolt
 
         virtual void visit(const MotorStopFrame &f)
         {
+            gMotorController->stop(f.motor, f.brake);
             send_message("OK!");
         }
 
