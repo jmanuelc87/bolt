@@ -56,3 +56,11 @@ servo_id == 0 values from 1 to 254
 ```
 AA 06 01 01 5D 2C 55
 ```
+
+#### Get Encoder Values
+
+motor_id == 0 values from 0 to 3
+
+```
+AA 07 01 00 XX XX 55
+```

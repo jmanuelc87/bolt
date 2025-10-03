@@ -49,13 +49,13 @@ namespace bolt
     class CountTimer : public Timer
     {
     public:
-        CountTimer(TIM_HandleTypeDef *htim, uint32_t channels) : htim_(htim), channels_(channels) {}
+        CountTimer(TIM_HandleTypeDef *htim, uint64_t channels) : htim_(htim), channels_(channels) {}
 
-        virtual uint32_t getCount() = 0;
+        virtual int32_t getCount() = 0;
 
     protected:
         TIM_HandleTypeDef *htim_;
-        uint32_t channels_;
+        uint64_t channels_;
     };
 }
 

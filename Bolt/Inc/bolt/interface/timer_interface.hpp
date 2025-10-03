@@ -60,20 +60,20 @@ namespace bolt
         class CountSyncTimerPort : public bolt::CountTimer
         {
         public:
-            CountSyncTimerPort(TIM_HandleTypeDef *htim, uint32_t channels) : CountTimer(htim, channels)
+            CountSyncTimerPort(TIM_HandleTypeDef *htim, uint64_t channels) : CountTimer(htim, channels)
             {
                 HAL_TIM_Encoder_Start(htim_, channels_);
                 __HAL_TIM_SET_COUNTER(htim_, 0);
             }
 
-            virtual uint32_t getCount() override;
+            virtual int32_t getCount() override;
 
         protected:
-            uint32_t last_ = 0;
-            uint32_t now_;
+            int32_t last_ = 0;
+            int32_t now_ = 0;
 
-            const uint32_t ENC_PERIOD = 0x10000U;
-            const uint32_t ENC_HALF = ENC_PERIOD / 2;
+            const int32_t ENC_PERIOD = 0x10000000U;
+            const int32_t ENC_HALF_PERIOD = (ENC_PERIOD / 2);
         };
 
         class CountAsyncTimerPort : public bolt::CountTimer
@@ -104,6 +104,8 @@ namespace bolt
             {
                 callbacks.push_back(cb);
             }
+
+            virtual int32_t getCount() override;
 
             friend class HandleRegistry<CountAsyncTimerPort, TIM_HandleTypeDef>;
 

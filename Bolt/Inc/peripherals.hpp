@@ -24,6 +24,7 @@ UartAsyncSerialPort *gUart1 = nullptr;
 
 UartServoController *gUartServo = nullptr;
 MotorController *gMotorController = nullptr;
+EncoderController *gEncoderController = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {
@@ -45,6 +46,16 @@ extern "C" void AppPeripheralsInit()
 
     static MotorController motorController(&syncTimerPort1, &syncTimerPort2);
     gMotorController = &motorController;
+
+    static CountAsyncTimerPort asyncTimerPort1(&htim7);
+
+    static CountSyncTimerPort syncTimerPort3(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
+    static CountSyncTimerPort syncTimerPort4(&htim3, TIM_CHANNEL_1 | TIM_CHANNEL_2);
+    static CountSyncTimerPort syncTimerPort5(&htim4, TIM_CHANNEL_1 | TIM_CHANNEL_2);
+    static CountSyncTimerPort syncTimerPort6(&htim5, TIM_CHANNEL_1 | TIM_CHANNEL_2);
+
+    static EncoderController encoderController(&asyncTimerPort1, &syncTimerPort3, &syncTimerPort4, &syncTimerPort5, &syncTimerPort6);
+    gEncoderController = &encoderController;
 }
 
 #endif /* BOLT_PERIPHERALS_HPP */

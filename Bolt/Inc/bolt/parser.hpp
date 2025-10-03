@@ -177,6 +177,14 @@ namespace bolt
                 usgam_.servo = rf.payload[0];
 
                 return &usgam_;
+
+            case FT_EncoderGetValues:
+                if (rf.len != 1)
+                    return 0;
+
+                egvm_.motor = rf.payload[0];
+
+                return &egvm_;
             }
             return 0;
         }
@@ -188,6 +196,7 @@ namespace bolt
         PwmServoFrame psm_;
         UartServoFrame usm_;
         UartServoGetAngleFrame usgam_;
+        EncoderGetValuesFrame egvm_;
     };
 }
 

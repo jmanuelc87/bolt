@@ -15,7 +15,8 @@ namespace bolt
         FT_MotorStop = 0x03,
         FT_ServoMove = 0x04,
         FT_UartServoMove = 0x05,
-        FT_UartServoGetAngle = 0x06
+        FT_UartServoGetAngle = 0x06,
+        FT_EncoderGetValues = 0x07
     };
 
     struct PingFrame;
@@ -24,6 +25,7 @@ namespace bolt
     struct PwmServoFrame;
     struct UartServoFrame;
     struct UartServoGetAngleFrame;
+    struct EncoderGetValuesFrame;
 
     struct FrameVisitor
     {
@@ -34,6 +36,7 @@ namespace bolt
         virtual void visit(const PwmServoFrame &f) = 0;
         virtual void visit(const UartServoFrame &f) = 0;
         virtual void visit(const UartServoGetAngleFrame &f) = 0;
+        virtual void visit(const EncoderGetValuesFrame &f) = 0;
     };
 
     struct Frame
@@ -93,6 +96,14 @@ namespace bolt
         uint8_t servo;
 
         UartServoGetAngleFrame() : Frame(FT_UartServoGetAngle), servo(0) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct EncoderGetValuesFrame : public Frame
+    {
+        uint8_t motor;
+
+        EncoderGetValuesFrame() : Frame(FT_EncoderGetValues), motor(0) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 

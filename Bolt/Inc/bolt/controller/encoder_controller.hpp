@@ -21,13 +21,13 @@ namespace bolt
             {
                 timPeriodCountElapsed = [this]()
                 {
-                    if (++enc_div_ >= 10)
+                    if (++enc_div_ >= 100)
                     {
                         enc_div_ = 0;
 
                         for (uint8_t i = 0; i < 4; i++)
                         {
-                            uint32_t diff = port1_->getCount();
+                            uint32_t diff = getCount_(i);
 
                             enc_pos_counts[i] += diff;
                             enc_diff_last[i] = diff;
@@ -44,7 +44,7 @@ namespace bolt
 
             float getCPS(uint8_t id)
             {
-                return vel_cps[id] * 10000.0f;
+                return vel_cps[id] * 100.0f;
             }
 
             float getRPM(uint8_t id)
@@ -64,10 +64,10 @@ namespace bolt
             CountSyncTimerPort *port3_;
             CountSyncTimerPort *port4_;
 
-            uint32_t enc_pos_counts[4] = {0};
-            uint32_t enc_diff_last[4];
+            uint32_t enc_pos_counts[4] = {0, 0, 0, 0};
+            uint32_t enc_diff_last[4] = {0, 0, 0, 0};
 
-            float vel_cps[4] = {0.0f};
+            float vel_cps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             const float alpha = 0.2f;
 
             const uint16_t ENCODER_CPR = 1320.0f * 4.0f;
@@ -75,6 +75,26 @@ namespace bolt
             uint8_t enc_div_ = 0;
 
             std::function<void()> timPeriodCountElapsed;
+
+            uint32_t getCount_(uint8_t port_id)
+            {
+                switch (port_id)
+                {
+                case 0:
+                    return port1_->getCount();
+
+                case 1:
+                    return port2_->getCount();
+
+                case 2:
+                    return port3_->getCount();
+
+                case 3:
+                    return port4_->getCount();
+                }
+
+                return 0;
+            }
         };
     }
 }

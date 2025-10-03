@@ -65,6 +65,12 @@ namespace bolt
                 send_message("Err");
             }
         }
+
+        virtual void visit(const EncoderGetValuesFrame &f)
+        {
+            float rpm = gEncoderController->getRPM(f.motor);
+            send_message(rpm);
+        }
     };
 }
 

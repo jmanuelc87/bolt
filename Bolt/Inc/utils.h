@@ -67,6 +67,25 @@ static FORCE_INLINE void send_message(const char *data)
     }
 }
 
+static FORCE_INLINE void send_message(float data)
+{
+    char buff[4] = {0};
+
+    memcpy(buff, &data, 4);
+
+    Message m;
+
+    uint16_t len = build_frame(0x02, reinterpret_cast<const uint8_t *>(buff), 4, m.data, sizeof(m.data));
+    m.size = len;
+
+    osStatus_t s = osMessageQueuePut(queryQueue, &m, 0, 0);
+
+    if (s != osOK)
+    {
+        // failed message
+    }
+}
+
 static FORCE_INLINE void ok_transmission()
 {
     osThreadFlagsSet(ledTaskHandle, 0x01);
