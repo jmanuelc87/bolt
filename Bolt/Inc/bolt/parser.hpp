@@ -179,10 +179,8 @@ namespace bolt
                 return &usgam_;
 
             case FT_EncoderGetValues:
-                if (rf.len != 1)
+                if (rf.len != 0)
                     return 0;
-
-                egvm_.motor = rf.payload[0];
 
                 return &egvm_;
             }

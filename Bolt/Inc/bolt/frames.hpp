@@ -101,9 +101,7 @@ namespace bolt
 
     struct EncoderGetValuesFrame : public Frame
     {
-        uint8_t motor;
-
-        EncoderGetValuesFrame() : Frame(FT_EncoderGetValues), motor(0) {}
+        EncoderGetValuesFrame() : Frame(FT_EncoderGetValues) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 

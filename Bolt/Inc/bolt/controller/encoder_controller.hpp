@@ -25,14 +25,14 @@ namespace bolt
                     {
                         enc_div_ = 0;
 
-                        for (uint8_t i = 0; i < 4; i++)
+                        for (uint8_t i = 1; i <= 4; i++)
                         {
                             uint32_t diff = getCount_(i);
 
-                            enc_pos_counts[i] += diff;
-                            enc_diff_last[i] = diff;
+                            enc_pos_counts[i - 1] += diff;
+                            enc_diff_last[i - 1] = diff;
 
-                            vel_cps[i] = (1.0f - alpha) * vel_cps[i] + alpha * (float)enc_diff_last[i];
+                            vel_cps[i - 1] = (1.0f - alpha) * vel_cps[i - 1] + alpha * (float)enc_diff_last[i - 1];
                         }
                     }
                 };
@@ -44,7 +44,7 @@ namespace bolt
 
             float getCPS(uint8_t id)
             {
-                return vel_cps[id] * 100.0f;
+                return vel_cps[id - 1] * 100.0f;
             }
 
             float getRPM(uint8_t id)
@@ -54,7 +54,7 @@ namespace bolt
 
             int32_t getCounts(uint8_t id)
             {
-                return enc_pos_counts[id];
+                return enc_pos_counts[id - 1];
             }
 
         private:
@@ -64,13 +64,13 @@ namespace bolt
             CountSyncTimerPort *port3_;
             CountSyncTimerPort *port4_;
 
-            uint32_t enc_pos_counts[4] = {0, 0, 0, 0};
-            uint32_t enc_diff_last[4] = {0, 0, 0, 0};
+            int32_t enc_pos_counts[4] = {0, 0, 0, 0};
+            int32_t enc_diff_last[4] = {0, 0, 0, 0};
 
             float vel_cps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             const float alpha = 0.2f;
 
-            const uint16_t ENCODER_CPR = 1320.0f * 4.0f;
+            const int16_t ENCODER_CPR = 1320.0f * 4.0f;
 
             uint8_t enc_div_ = 0;
 
@@ -80,16 +80,16 @@ namespace bolt
             {
                 switch (port_id)
                 {
-                case 0:
+                case 1:
                     return port1_->getCount();
 
-                case 1:
+                case 2:
                     return port2_->getCount();
 
-                case 2:
+                case 3:
                     return port3_->getCount();
 
-                case 3:
+                case 4:
                     return port4_->getCount();
                 }
 

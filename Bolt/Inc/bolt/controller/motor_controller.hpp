@@ -48,7 +48,7 @@ namespace bolt
 
             std::map<int, std::pair<int, int>> motor2ports_ = {
                 {1, {4, 5}},
-                {2, {6, 7}},
+                {2, {7, 6}},
                 {3, {3, 0}},
                 {4, {1, 2}},
             };

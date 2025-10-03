@@ -43,7 +43,7 @@ extern "C" void vLed_Task(void *argument)
     while (1)
     {
         osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
-        led_controller.blink(2, 150);
+        led_controller.blink(2, 100);
     }
 }
 

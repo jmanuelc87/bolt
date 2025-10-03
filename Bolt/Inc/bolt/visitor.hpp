@@ -68,8 +68,12 @@ namespace bolt
 
         virtual void visit(const EncoderGetValuesFrame &f)
         {
-            float rpm = gEncoderController->getRPM(f.motor);
-            send_message(rpm);
+            float rpm1 = gEncoderController->getRPM(1);
+            float rpm2 = gEncoderController->getRPM(2);
+            float rpm3 = gEncoderController->getRPM(3);
+            float rpm4 = gEncoderController->getRPM(4);
+
+            send_message(rpm1, rpm2, rpm3, rpm4);
         }
     };
 }

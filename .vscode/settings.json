@@ -65,7 +65,14 @@
     "mutex": "cpp",
     "list": "cpp",
     "io_context": "cpp",
-    "stop_token": "cpp"
+    "stop_token": "cpp",
+    "condition_variable": "cpp",
+    "ctime": "cpp",
+    "forward_list": "cpp",
+    "netfwd": "cpp",
+    "ratio": "cpp",
+    "timer": "cpp",
+    "semaphore": "cpp"
   },
   "launches": {
     "DebugMicrocontroller": "Debug Microcontroller - STLink-V3(bolt)"
