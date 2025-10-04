@@ -33,7 +33,7 @@ namespace bolt
     class CanBus
     {
     public:
-        virtual bool sendMessage(uint32_t id, const uint8_t *data, uint8_t len) = 0;
+        virtual void sendMessage(uint32_t id, const uint8_t *data, uint8_t len) = 0;
     };
 
     class Timer

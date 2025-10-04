@@ -74,7 +74,7 @@ extern "C" void vProcess_Task(void *argument)
                     }
                 }
             }
-            vTaskDelay(pdMS_TO_TICKS(2));
+            vTaskDelay(pdMS_TO_TICKS(1));
         }
     }
 }
@@ -82,6 +82,7 @@ extern "C" void vProcess_Task(void *argument)
 extern "C" void vCommand_Task(void *argument)
 {
     (void)argument;
+#ifndef USE_CANBUS
     gUart1->rxEventCallback = [](uint16_t Size)
     {
         Message m;
@@ -96,6 +97,18 @@ extern "C" void vCommand_Task(void *argument)
     };
 
     gUart1->receiveToIdle();
+#else
+    gCanBus->onMessageRecieved = [](uint8_t *data, uint8_t len)
+    {
+        Message m;
+        m.size = len;
+        memcpy(m.data, data, len);
+
+        osStatus_t s = osMessageQueuePut(processQueue, &m, 0, 0);
+        if (s == osOK)
+            osThreadFlagsSet(ledTaskHandle, 0x01);
+    };
+#endif
 
     while (1)
     {
@@ -106,10 +119,6 @@ extern "C" void vCommand_Task(void *argument)
 extern "C" void vQuery_Task(void *argument)
 {
     (void)argument;
-    gUart1->txCompleteCallback = []
-    {
-        osThreadFlagsSet(ledTaskHandle, 0x01);
-    };
 
     Message m;
 
@@ -117,7 +126,11 @@ extern "C" void vQuery_Task(void *argument)
     {
         if (osMessageQueueGet(queryQueue, &m, NULL, osWaitForever) == osOK)
         {
+#ifndef USE_CANBUS
             gUart1->transmit(m.data, m.size);
+#else
+            gCanBus->isotpSend(m.data, m.size);
+#endif
         }
     }
 }

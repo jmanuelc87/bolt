@@ -33,6 +33,7 @@ namespace bolt
 
         virtual void visit(const PwmServoFrame &f)
         {
+            (void)f;
             send_message("OK!");
         }
 
@@ -68,6 +69,7 @@ namespace bolt
 
         virtual void visit(const EncoderGetValuesFrame &f)
         {
+            (void)f;
             float rpm1 = gEncoderController->getRPM(1);
             float rpm2 = gEncoderController->getRPM(2);
             float rpm3 = gEncoderController->getRPM(3);

@@ -53,11 +53,13 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/pin_interface.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/can_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/serial_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/timer_interface.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/led_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/motor_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/servo_controller.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/handle_registry.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/application.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/queues.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/debug.c
@@ -73,6 +75,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
+    USE_CANBUS
 )
 
 # Add linked libraries

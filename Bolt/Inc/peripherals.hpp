@@ -3,6 +3,7 @@
 
 #include "interface/serial_interface.hpp"
 #include "interface/timer_interface.hpp"
+#include "interface/can_interface.hpp"
 
 #include "controller/servo_controller.hpp"
 #include "controller/motor_controller.hpp"
@@ -20,7 +21,11 @@ using bolt::timer::CountAsyncTimerPort;
 using bolt::timer::CountSyncTimerPort;
 using bolt::timer::PWMSyncTimerPort;
 
+using bolt::can::CanBusAsyncPort;
+
 UartAsyncSerialPort *gUart1 = nullptr;
+
+CanBusAsyncPort *gCanBus = nullptr;
 
 UartServoController *gUartServo = nullptr;
 MotorController *gMotorController = nullptr;
@@ -30,6 +35,9 @@ extern "C" void AppPeripheralsInit()
 {
     static UartAsyncSerialPort port(&huart1, BUFF_SIZE);
     gUart1 = &port;
+
+    static CanBusAsyncPort canPort(&hcan);
+    gCanBus = &canPort;
 
     static UartServoController servoPort(&huart3, 10);
     gUartServo = &servoPort;

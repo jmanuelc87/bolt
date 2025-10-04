@@ -62,5 +62,5 @@ AA 06 01 01 5D 2C 55
 motor_id == 0 values from 0 to 3
 
 ```
-AA 07 00 XX XX 55
+AA 07 00 84 98 55
 ```
