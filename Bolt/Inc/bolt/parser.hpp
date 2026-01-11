@@ -189,7 +189,7 @@ namespace bolt
 
     private:
         PingFrame ping_;
-        MotorMoveFrame setmtr_;
+        MotorSpeedFrame setmtr_;
         MotorStopFrame stop_;
         PwmServoFrame psm_;
         UartServoFrame usm_;

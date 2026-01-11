@@ -16,54 +16,49 @@ namespace bolt
     {
         virtual void visit(const PingFrame &)
         {
-            send_message("OK!");
+            send_payload(PONG, "OK!");
         }
 
-        virtual void visit(const MotorMoveFrame &f)
+        virtual void visit(const MotorSpeedFrame &f)
         {
             gMotorController->setSpeed(f.motor, f.pulse);
-            send_message("OK!");
         }
 
         virtual void visit(const MotorStopFrame &f)
         {
             gMotorController->stop(f.motor, f.brake);
-            send_message("OK!");
         }
 
         virtual void visit(const PwmServoFrame &f)
         {
             (void)f;
-            send_message("OK!");
         }
 
         virtual void visit(const UartServoFrame &f)
         {
             gUartServo->setControl(f.servo, f.pulse, f.time);
-            send_message("OK!");
         }
 
         virtual void visit(const UartServoGetAngleFrame &f)
         {
             gUartServo->setControlAngle(f.servo);
-            int i = 15;
+            int i = 10;
 
             while (--i > 0 && !gUartServo->isReady())
             {
-                vTaskDelay(pdMS_TO_TICKS(1));
+                vTaskDelay(pdMS_TO_TICKS(2));
             }
 
             if (i > 0)
             {
-                uint16_t angle = gUartServo->getAngle();
-                char str[10] = "";
-
-                sprintf(str, "%d", angle);
-                send_message(str);
+                int pwm = gUartServo->getAngle();
+                float percent = (pwm - 100) / 3800; // normalize pwm value
+                float angle = 180 * percent;        // calculate angle
+                send_payload(ANGLE, new float[]{angle}, 1);
             }
             else
             {
-                send_message("Err");
+                send_payload(ANGLE, new float[]{-1.0}, 1);
             }
         }
 
@@ -75,7 +70,9 @@ namespace bolt
             float rpm3 = gEncoderController->getRPM(3);
             float rpm4 = gEncoderController->getRPM(4);
 
-            send_message(rpm1, rpm2, rpm3, rpm4);
+            float array[] = {rpm1, rpm2, rpm3, rpm4};
+
+            send_payload(RPMS, array, 4);
         }
     };
 }

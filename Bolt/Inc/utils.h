@@ -53,45 +53,31 @@ static size_t build_frame(uint8_t type, const uint8_t *payload, uint8_t len, uin
     return i;
 }
 
-static FORCE_INLINE void send_message(const char *data)
+static FORCE_INLINE void send_payload(uint8_t type, const char *data)
 {
     Message m;
 
-    uint16_t len = build_frame(0x01, reinterpret_cast<const uint8_t *>(data), strlen(data), m.data, sizeof(m.data));
+    uint16_t len = build_frame(type, reinterpret_cast<const uint8_t *>(data), strlen(data), m.data, sizeof(m.data));
     m.size = len;
 
-    osStatus_t s = osMessageQueuePut(queryQueue, &m, 0, 0);
-    if (s != osOK)
-    {
-        // failed message
-    }
+    osMessageQueuePut(queryQueue, &m, 0, 0);
 }
 
-static FORCE_INLINE void send_message(float data1, float data2, float data3, float data4)
+static FORCE_INLINE void send_payload(uint8_t type, const float *data, uint16_t size)
 {
-    char buff[16] = {0};
+    uint16_t len = size * sizeof(float);
+    uint8_t *buff = new uint8_t[len];
 
-    memcpy(buff, &data1, 4);
-    memcpy(buff + 4, &data2, 4);
-    memcpy(buff + 8, &data3, 4);
-    memcpy(buff + 12, &data4, 4);
+    memcpy(buff, data, len);
 
     Message m;
 
-    uint16_t len = build_frame(0x02, reinterpret_cast<const uint8_t *>(buff), 16, m.data, sizeof(m.data));
-    m.size = len;
+    uint16_t result_len = build_frame(type, buff, len, m.data, sizeof(m.data));
+    m.size = result_len;
 
-    osStatus_t s = osMessageQueuePut(queryQueue, &m, 0, 0);
+    osMessageQueuePut(queryQueue, &m, 0, 0);
 
-    if (s != osOK)
-    {
-        // failed message
-    }
-}
-
-static FORCE_INLINE void ok_transmission()
-{
-    osThreadFlagsSet(ledTaskHandle, 0x01);
+    delete[] buff;
 }
 
 #endif /* BOLT_UTILS_H */

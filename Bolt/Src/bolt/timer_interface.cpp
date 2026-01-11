@@ -8,7 +8,7 @@ void bolt::timer::PWMSyncTimerPort::setPulses(int16_t pulse1, int16_t pulse2, in
     htim_->Instance->CCR4 = pulse4;
 }
 
-int32_t bolt::timer::CountSyncTimerPort::getCount()
+int32_t bolt::timer::CountSyncTimerPort::count()
 {
     now_ = __HAL_TIM_GET_COUNTER(htim_);
     int32_t diff = now_ - last_;
@@ -22,7 +22,7 @@ int32_t bolt::timer::CountSyncTimerPort::getCount()
     return diff;
 }
 
-int32_t bolt::timer::CountAsyncTimerPort::getCount()
+int32_t bolt::timer::CountAsyncTimerPort::count()
 {
-    return callbacks.size();
+    return -1;
 }

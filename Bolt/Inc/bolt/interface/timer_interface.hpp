@@ -66,7 +66,7 @@ namespace bolt
                 __HAL_TIM_SET_COUNTER(htim_, 0);
             }
 
-            virtual int32_t getCount() override;
+            virtual int32_t count() override;
 
         protected:
             int32_t last_ = 0;
@@ -105,7 +105,7 @@ namespace bolt
                 callbacks.push_back(cb);
             }
 
-            virtual int32_t getCount() override;
+            virtual int32_t count() override;
 
             friend class HandleRegistry<CountAsyncTimerPort, TIM_HandleTypeDef>;
 

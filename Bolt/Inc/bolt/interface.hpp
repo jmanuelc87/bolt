@@ -51,7 +51,7 @@ namespace bolt
     public:
         CountTimer(TIM_HandleTypeDef *htim, uint64_t channels) : htim_(htim), channels_(channels) {}
 
-        virtual int32_t getCount() = 0;
+        virtual int32_t count() = 0;
 
     protected:
         TIM_HandleTypeDef *htim_;
