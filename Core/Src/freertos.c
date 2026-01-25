@@ -75,6 +75,13 @@ const osThreadAttr_t processTask_attributes = {
   .stack_size = 384 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for processTaskv2 */
+osThreadId_t processTaskv2Handle;
+const osThreadAttr_t processTaskv2_attributes = {
+  .name = "processTaskv2",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -85,6 +92,7 @@ void vLed_Task(void *argument);
 void vCommand_Task(void *argument);
 void vQuery_Task(void *argument);
 void vProcess_Task(void *argument);
+void v2Process_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -126,6 +134,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of processTask */
   processTaskHandle = osThreadNew(vProcess_Task, NULL, &processTask_attributes);
+
+  /* creation of processTaskv2 */
+  processTaskv2Handle = osThreadNew(v2Process_Task, NULL, &processTaskv2_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -207,6 +218,24 @@ __weak void vProcess_Task(void *argument)
     osDelay(1);
   }
   /* USER CODE END vProcess_Task */
+}
+
+/* USER CODE BEGIN Header_v2Process_Task */
+/**
+* @brief Function implementing the processTaskv2 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_v2Process_Task */
+__weak void v2Process_Task(void *argument)
+{
+  /* USER CODE BEGIN v2Process_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END v2Process_Task */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -86,9 +86,13 @@ namespace bolt
 
                 timElapsedCompleteCallback = [this]()
                 {
-                    for (auto &cb : callbacks)
+                    for (uint16_t i = 0; i < callbacks.size(); i++)
                     {
-                        cb();
+                        if (++timers[i] >= callbacks[i].second)
+                        {
+                            callbacks[i].first();
+                            timers[i] = 0;
+                        }
                     }
                 };
 
@@ -100,9 +104,11 @@ namespace bolt
                 HandleRegistry<CountAsyncTimerPort, TIM_HandleTypeDef>::unregisterCallbacks(htim_);
             }
 
-            void add(CountAsyncTimerCallback cb)
+            void add(CountAsyncTimerCallback cb, uint16_t time)
             {
-                callbacks.push_back(cb);
+                auto p = std::make_pair(cb, time);
+                callbacks.push_back(p);
+                timers.push_back(0);
             }
 
             virtual int32_t count() override;
@@ -110,8 +116,36 @@ namespace bolt
             friend class HandleRegistry<CountAsyncTimerPort, TIM_HandleTypeDef>;
 
         private:
-            std::vector<CountAsyncTimerCallback> callbacks;
+            std::vector<uint16_t> timers;
+            std::vector<std::pair<CountAsyncTimerCallback, uint16_t>> callbacks;
             std::function<void()> timElapsedCompleteCallback;
+        };
+
+        typedef struct __PROC_HandleTypeDef
+        {
+            uint16_t time;
+            uint16_t counter;
+        } PROC_HandleTypeDef;
+
+        class ProcessAsyncTimerPort
+        {
+        public:
+            ProcessAsyncTimerPort(PROC_HandleTypeDef *p) : proc(p)
+            {
+                HandleRegistry<ProcessAsyncTimerPort, PROC_HandleTypeDef>::registry().insert({p, this});
+            };
+
+            ~ProcessAsyncTimerPort()
+            {
+                HandleRegistry<ProcessAsyncTimerPort, PROC_HandleTypeDef>::registry().erase(proc);
+            };
+
+            friend class HandleRegistry<ProcessAsyncTimerPort, PROC_HandleTypeDef>;
+
+            std::function<void()> timElapsedCompleteCallback;
+
+        private:
+            PROC_HandleTypeDef *proc;
         };
     }
 }

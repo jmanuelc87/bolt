@@ -19,6 +19,7 @@ using bolt::controller::MotorController;
 
 using bolt::timer::CountAsyncTimerPort;
 using bolt::timer::CountSyncTimerPort;
+using bolt::timer::PROC_HandleTypeDef;
 using bolt::timer::PWMSyncTimerPort;
 
 using bolt::can::CanBusAsyncPort;
@@ -55,14 +56,16 @@ extern "C" void AppPeripheralsInit()
     static MotorController motorController(&syncTimerPort1, &syncTimerPort2);
     gMotorController = &motorController;
 
-    static CountAsyncTimerPort asyncTimerPort1(&htim7);
+    PROC_HandleTypeDef p = {200, 0};
+
+    static ProcessAsyncTimerPort procAsyncTimerPort(&p);
 
     static CountSyncTimerPort syncTimerPort3(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
     static CountSyncTimerPort syncTimerPort4(&htim4, TIM_CHANNEL_1 | TIM_CHANNEL_2);
     static CountSyncTimerPort syncTimerPort5(&htim5, TIM_CHANNEL_1 | TIM_CHANNEL_2);
     static CountSyncTimerPort syncTimerPort6(&htim3, TIM_CHANNEL_1 | TIM_CHANNEL_2);
 
-    static EncoderController encoderController(&asyncTimerPort1, &syncTimerPort3, &syncTimerPort4, &syncTimerPort5, &syncTimerPort6);
+    static EncoderController encoderController(&procAsyncTimerPort, &syncTimerPort3, &syncTimerPort4, &syncTimerPort5, &syncTimerPort6);
     gEncoderController = &encoderController;
 }
 

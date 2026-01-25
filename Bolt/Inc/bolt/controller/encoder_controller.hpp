@@ -3,8 +3,8 @@
 
 #include "interface/timer_interface.hpp"
 
-using bolt::timer::CountAsyncTimerPort;
 using bolt::timer::CountSyncTimerPort;
+using bolt::timer::ProcessAsyncTimerPort;
 
 namespace bolt
 {
@@ -13,7 +13,7 @@ namespace bolt
         class EncoderController
         {
         public:
-            EncoderController(CountAsyncTimerPort *sampler,
+            EncoderController(ProcessAsyncTimerPort *sampler,
                               CountSyncTimerPort *port1,
                               CountSyncTimerPort *port2,
                               CountSyncTimerPort *port3,
@@ -23,23 +23,14 @@ namespace bolt
 
                 timPeriodCountElapsed = [this]()
                 {
-                    if (++enc_div_ >= 100)
+                    for (uint8_t i = 0; i < 4; i++)
                     {
-                        enc_div_ = 0;
-
-                        for (uint8_t i = 0; i < 4; i++)
-                        {
-                            int32_t diff = port[i]->count();
-
-                            enc_pos_counts[i - 1] += diff;
-                            enc_diff_last[i - 1] = diff;
-
-                            vel_cps[i - 1] = (1.0f - alpha) * vel_cps[i - 1] + alpha * (float)enc_diff_last[i - 1];
-                        }
+                        int32_t diff = port[i]->count();
+                        enc_pos_counts[i] += diff;
+                        enc_diff_last[i] = diff;
+                        vel_cps[i] = (1.0f - alpha) * vel_cps[i] + alpha * (float)enc_diff_last[i];
                     }
                 };
-
-                sampler_->add(timPeriodCountElapsed);
             }
 
             ~EncoderController() {}
@@ -60,7 +51,7 @@ namespace bolt
             }
 
         private:
-            CountAsyncTimerPort *sampler_;
+            ProcessAsyncTimerPort *sampler_;
             CountSyncTimerPort *port[4];
 
             int32_t enc_pos_counts[4] = {0, 0, 0, 0};

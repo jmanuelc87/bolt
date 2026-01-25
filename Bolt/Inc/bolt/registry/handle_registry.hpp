@@ -10,6 +10,7 @@ namespace bolt
 {
     namespace registry
     {
+
         template <typename Controller, typename HandleType>
         class HandleRegistry
         {
