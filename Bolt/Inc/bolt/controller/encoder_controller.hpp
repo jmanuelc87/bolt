@@ -21,7 +21,7 @@ namespace bolt
             {
                 setPorts(port1, port2, port3, port4);
 
-                timPeriodCountElapsed = [this]()
+                sampler_->timElapsedCompleteCallback = [this]()
                 {
                     for (uint8_t i = 0; i < 4; i++)
                     {
@@ -63,8 +63,6 @@ namespace bolt
             const int16_t ENCODER_CPR = 2464.0f;
 
             uint8_t enc_div_ = 0;
-
-            std::function<void()> timPeriodCountElapsed;
 
             void setPorts(CountSyncTimerPort *port1, CountSyncTimerPort *port2, CountSyncTimerPort *port3, CountSyncTimerPort *port4)
             {

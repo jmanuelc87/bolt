@@ -56,9 +56,11 @@ extern "C" void AppPeripheralsInit()
     static MotorController motorController(&syncTimerPort1, &syncTimerPort2);
     gMotorController = &motorController;
 
-    PROC_HandleTypeDef p = {200, 0};
+    static PROC_HandleTypeDef ptim1;
+    ptim1.timer = 20;
+    ptim1.counter = 20;
 
-    static ProcessAsyncTimerPort procAsyncTimerPort(&p);
+    static ProcessAsyncTimerPort procAsyncTimerPort(&ptim1);
 
     static CountSyncTimerPort syncTimerPort3(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
     static CountSyncTimerPort syncTimerPort4(&htim4, TIM_CHANNEL_1 | TIM_CHANNEL_2);

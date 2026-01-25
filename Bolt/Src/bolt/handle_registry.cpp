@@ -4,8 +4,8 @@
 #include "interface/timer_interface.hpp"
 
 using bolt::can::CanBusAsyncPort;
-using bolt::timer::ProcessAsyncTimerPort;
 using bolt::timer::PROC_HandleTypeDef;
+using bolt::timer::ProcessAsyncTimerPort;
 
 extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *h)
 {
@@ -23,16 +23,16 @@ extern "C" void v2Process_Task(void *argument)
     {
         std::unordered_map registry = bolt::registry::HandleRegistry<ProcessAsyncTimerPort, PROC_HandleTypeDef>::registry();
 
-        for (const auto &[handler, controller] : registry)
+        for (auto &[handler, controller] : registry)
         {
-            if (++(handler->counter) >= handler->time)
+            if (!(--handler->counter))
             {
                 if (controller && controller->timElapsedCompleteCallback)
                 {
                     controller->timElapsedCompleteCallback();
                 }
 
-                handler->counter = 0;
+                handler->counter = handler->timer;
             }
         }
 

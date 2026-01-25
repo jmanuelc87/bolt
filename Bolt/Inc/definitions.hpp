@@ -1,7 +1,7 @@
 #ifndef BOLT_DEFINITIONS_HPP
 #define BOLT_DEFINITIONS_HPP
 
-#define BUFF_SIZE 32
+#define BUFF_SIZE 38
 
 enum : uint8_t
 {

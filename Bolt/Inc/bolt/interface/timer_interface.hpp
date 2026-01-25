@@ -123,7 +123,7 @@ namespace bolt
 
         typedef struct __PROC_HandleTypeDef
         {
-            uint16_t time;
+            uint16_t timer;
             uint16_t counter;
         } PROC_HandleTypeDef;
 
