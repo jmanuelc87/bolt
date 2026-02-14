@@ -1,66 +1,23 @@
-# Bolt Firmware
+# Bolt
 
-The Protocol:
+Embedded firmware for an STM32F103XE (ARM Cortex-M3) robotics platform. Bolt controls motors, servos, and encoders through a binary frame protocol over UART or CAN bus, using FreeRTOS for real-time task management. Written in C++17 with a C11 HAL layer.
 
-```
-[SOF=0xAA][TYPE:1][LEN:1][PAYLOAD:LEN][CRC16-CCITT:2][EOF=0x55]
-```
+![Yahboom YB-ERF01-V3.0 Board](docs/board.png)
 
-#### Ping Frame:
 
-```
-AA 01 00 2E 3E 55
-```
+## Physical Architecture
 
-#### Set Motor Pulse Frame:
+A host computer (Jetson Orin Nano or PC) sends commands to the YB-ERF01-V3.0 board through a CANable USB-to-CAN adapter. The board drives up to 4 DC motors via PWM and up to 10 servos (4 PWM, 6 serial). Encoder feedback from each motor is read by the board and reported back to the host over the same CAN bus link. The entire system is powered by a 12V battery connected to the board's DC input.
 
-motor_id == 1 values (1,2,3,4)
-pulse == 1000 ranges [0, 2000]
-
-```
-AA 02 03 01 03 E8 D0 16 55
-```
-
-#### Motor Stop Frame
-
-motor_id == 1 values (1,2,3,4)
-brake == 0 or 1
-
-```
-AA 03 02 01 00 42 4D 55
+```mermaid
+graph LR
+    Battery["Battery
+(DC 12V)"] -->|Power| Board["YB-ERF01-V3.0
+Board"]
+    Computer["Computer /
+Jetson Orin Nano"] -->|USB| CANable["CANable"]
+    CANable -->|CAN Bus| Board
+    Board -->|PWM| DC["DC Motors"]
+    Board -->|PWM / Serial| Servo["Servo Motors"]
 ```
 
-#### PWM Servo Move Frame
-
-servo_id == 0 values (0, 1, 2, 3)
-angle == 60 ranges [0, 180]
-
-```
-AA 04 02 00 3C D7 8E 55
-```
-
-#### Serial Servo Move Frame
-
-servo_id == 1 values from 1 to 254
-pulse == 2000 values 96 to 3999
-time == 500 values 0 to 2000
-
-```
-AA 05 05 01 07 D0 01 F4 C9 2A 55
-```
-
-#### Serial Servo Get Angle
-
-servo_id == 0 values from 1 to 254
-
-```
-AA 06 01 01 5D 2C 55
-```
-
-#### Get Encoder Values
-
-motor_id == 0 values from 0 to 3
-
-```
-AA 07 00 84 98 55
-```
