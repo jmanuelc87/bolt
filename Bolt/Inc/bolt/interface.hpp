@@ -57,6 +57,15 @@ namespace bolt
         TIM_HandleTypeDef *htim_;
         uint64_t channels_;
     };
+
+    class SpiPort
+    {
+    public:
+        virtual void transmit(const uint8_t *data, uint16_t size) = 0;
+        virtual void receive(uint8_t *buffer, uint16_t size) = 0;
+        virtual void transmitReceive(const uint8_t *txData, uint8_t *rxData, uint16_t size) = 0;
+        virtual ~SpiPort() = default;
+    };
 }
 
 #endif /* BOLT_INTERFACE_HPP */
