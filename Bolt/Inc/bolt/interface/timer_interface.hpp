@@ -38,6 +38,9 @@ namespace bolt
         public:
             PWMSyncTimerPort(TIM_HandleTypeDef *htim, int32_t chan_pwm[4], int32_t chan_pwmn[4]) : PWMTimerPort(htim)
             {
+                HandleRegistry<PWMSyncTimerPort, TIM_HandleTypeDef>::registerCallbacks(htim_);
+                HandleRegistry<PWMSyncTimerPort, TIM_HandleTypeDef>::registry().insert({htim_, this});
+
                 for (uint8_t i = 0; i < 4; i++)
                 {
                     if (chan_pwm[i] != -1)
@@ -52,9 +55,17 @@ namespace bolt
                 }
             }
 
-            ~PWMSyncTimerPort() {}
+            ~PWMSyncTimerPort()
+            {
+                HandleRegistry<PWMSyncTimerPort, TIM_HandleTypeDef>::unregisterCallbacks(htim_);
+                HandleRegistry<PWMSyncTimerPort, TIM_HandleTypeDef>::registry().erase(htim_);
+            }
 
             void setPulses(int16_t pulse1, int16_t pulse2, int16_t pulse3, int16_t pulse4) override;
+
+            friend class HandleRegistry<PWMSyncTimerPort, TIM_HandleTypeDef>;
+
+            std::function<void()> timElapsedCompleteCallback;
         };
 
         class CountSyncTimerPort : public bolt::CountTimer

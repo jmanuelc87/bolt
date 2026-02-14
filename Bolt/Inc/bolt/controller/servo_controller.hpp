@@ -6,6 +6,7 @@
 
 #include "interface/pin_interface.hpp"
 #include "interface/serial_interface.hpp"
+#include "interface/timer_interface.hpp"
 #include "registry/handle_registry.hpp"
 #include "stm32f1xx_hal.h"
 #include "cmsis_os.h"
@@ -28,6 +29,32 @@ namespace bolt
     {
         class ServoController : public bolt::PWMTimer
         {
+        };
+
+        class PWMServoController : public ServoController
+        {
+        public:
+            PWMServoController(bolt::timer::PWMSyncTimerPort *port,
+                               GpioOutputPin *pin0, GpioOutputPin *pin1,
+                               GpioOutputPin *pin2, GpioOutputPin *pin3);
+            ~PWMServoController();
+
+            void setAngle(uint8_t servo_id, uint8_t angle);
+
+            void setPulses(int16_t pulse1, int16_t pulse2, int16_t pulse3, int16_t pulse4) override;
+
+        private:
+            static constexpr uint16_t FRAME_TICKS = 200;
+
+            bolt::timer::PWMSyncTimerPort *port_;
+            GpioOutputPin *pins_[4];
+
+            volatile uint8_t pulseTicks_[4] = {0, 0, 0, 0};
+            volatile uint16_t frameCounter_ = 0;
+
+            int16_t angleToUs(uint8_t angle);
+            uint8_t usToTicks(int16_t us);
+            void tick();
         };
 
         class UartServoController : public bolt::serial::UartAsyncSerialPort

@@ -6,89 +6,115 @@
 #include "gpio.h"
 #include "utils.h"
 
-// bool bolt::controller::ServoController::setAngle(int16_t angle, uint8_t servo_id)
-// {
-//     float us = this->PwmServoAngleToUs(angle);
+bolt::controller::PWMServoController::PWMServoController(
+    bolt::timer::PWMSyncTimerPort *port,
+    GpioOutputPin *pin0, GpioOutputPin *pin1,
+    GpioOutputPin *pin2, GpioOutputPin *pin3)
+    : port_(port)
+{
+    pins_[0] = pin0;
+    pins_[1] = pin1;
+    pins_[2] = pin2;
+    pins_[3] = pin3;
 
-//     this->g_pwm_pulse[servo_id] = us;
-//     return 1;
-// }
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        if (pins_[i])
+            pins_[i]->setLow();
+    }
 
-// float bolt::controller::ServoController::PwmServoAngleToUs(uint8_t angle)
-// {
-//     static constexpr float MIN_US = 500.0f;
-//     static constexpr float MAX_US = 2400.0f;
-//     static constexpr float NEUTRAL_US = 1500.0f;
+    port_->timElapsedCompleteCallback = [this]()
+    {
+        this->tick();
+    };
+}
 
-//     // Accept either -90..+90 (centered) or 0..180 (absolute)
-//     // If given 0..180, convert to centered around 0 at 90 deg.
-//     float deg = static_cast<float>(angle);
-//     if (deg >= 0.0f && deg <= 180.0f)
-//     {
-//         deg -= 90.0f; // now -90..+90
-//     }
+bolt::controller::PWMServoController::~PWMServoController()
+{
+    port_->timElapsedCompleteCallback = nullptr;
+}
 
-//     const float half_span = (MAX_US - MIN_US) * 0.5f; // ≈ 950 us
-//     float us = NEUTRAL_US + deg * (half_span / 90.0f);
+void bolt::controller::PWMServoController::tick()
+{
+    if (frameCounter_ == 0)
+    {
+        for (uint8_t i = 0; i < 4; i++)
+        {
+            if (pins_[i] && pulseTicks_[i] > 0)
+            {
+                pins_[i]->setHigh();
+            }
+        }
+    }
 
-//     // Hard clamp to the servo's safe electrical range
-//     if (us < MIN_US)
-//         us = MIN_US;
-//     if (us > MAX_US)
-//         us = MAX_US;
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        if (pins_[i] && frameCounter_ == pulseTicks_[i])
+        {
+            pins_[i]->setLow();
+        }
+    }
 
-//     return us;
-// }
+    frameCounter_++;
+    if (frameCounter_ >= FRAME_TICKS)
+    {
+        frameCounter_ = 0;
+    }
+}
 
-// void bolt::controller::ServoController::zeroFrameTicks()
-// {
-//     GPIOC->BSRR = (GPIO_BSRR_BS0 | GPIO_BSRR_BS1 | GPIO_BSRR_BS2 | GPIO_BSRR_BS3);
+void bolt::controller::PWMServoController::setAngle(uint8_t servo_id, uint8_t angle)
+{
+    if (servo_id >= 4)
+        return;
 
-//     // Convert pulse width (us) to countdown ticks
-//     for (int i = 0; i < 4; ++i)
-//     {
-//         uint32_t us = g_pwm_pulse[i];
-//         uint32_t ticks = (us + (STEP_US / 2)) / STEP_US; // round
-//         if (ticks >= FRAME_TICKS)
-//             ticks = FRAME_TICKS - 1;
-//         ch_ticks[i] = static_cast<uint16_t>(ticks);
-//     }
+    pulseTicks_[servo_id] = usToTicks(angleToUs(angle));
+}
 
-//     frame_ticks = FRAME_TICKS;
-// }
+void bolt::controller::PWMServoController::setPulses(int16_t pulse1, int16_t pulse2, int16_t pulse3, int16_t pulse4)
+{
+    pulseTicks_[0] = usToTicks(pulse1);
+    pulseTicks_[1] = usToTicks(pulse2);
+    pulseTicks_[2] = usToTicks(pulse3);
+    pulseTicks_[3] = usToTicks(pulse4);
+}
 
-// void bolt::controller::ServoController::decrementPerChannel()
-// {
-//     // Decrement per-channel and drop pins low when they expire
-//     for (int i = 0; i < 4; i++)
-//     {
-//         if (ch_ticks[i] > 0)
-//         {
-//             ch_ticks[i]--;
-//             if (ch_ticks[i] == 0)
-//             {
-//                 switch (i)
-//                 {
-//                 case 0:
-//                     GPIOC->BSRR = GPIO_BSRR_BR0;
-//                     break;
-//                 case 1:
-//                     GPIOC->BSRR = GPIO_BSRR_BR1;
-//                     break;
-//                 case 2:
-//                     GPIOC->BSRR = GPIO_BSRR_BR2;
-//                     break;
-//                 case 3:
-//                     GPIOC->BSRR = GPIO_BSRR_BR3;
-//                     break;
-//                 }
-//             }
-//         }
-//     }
+uint8_t bolt::controller::PWMServoController::usToTicks(int16_t us)
+{
+    if (us <= 0)
+        return 0;
 
-//     if (frame_ticks > 0)
-//         frame_ticks--;
-// }
+    uint8_t ticks = static_cast<uint8_t>((us + 50) / 100);
+
+    if (ticks < 5)
+        ticks = 5;
+    if (ticks > 24)
+        ticks = 24;
+
+    return ticks;
+}
+
+int16_t bolt::controller::PWMServoController::angleToUs(uint8_t angle)
+{
+    static constexpr float MIN_US = 500.0f;
+    static constexpr float MAX_US = 2400.0f;
+    static constexpr float NEUTRAL_US = 1500.0f;
+
+    float deg = static_cast<float>(angle);
+    if (deg > 180.0f)
+        deg = 180.0f;
+
+    deg -= 90.0f;
+
+    const float half_span = (MAX_US - MIN_US) * 0.5f;
+    float us = NEUTRAL_US + deg * (half_span / 90.0f);
+
+    if (us < MIN_US)
+        us = MIN_US;
+    if (us > MAX_US)
+        us = MAX_US;
+
+    return static_cast<int16_t>(us);
+}
 
 bolt::controller::UartServoController::UartServoController(UART_HandleTypeDef *huart, uint8_t size) : bolt::serial::UartAsyncSerialPort(huart, size)
 {

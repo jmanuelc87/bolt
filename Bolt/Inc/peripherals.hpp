@@ -10,18 +10,21 @@
 #include "controller/encoder_controller.hpp"
 
 #include "definitions.hpp"
+#include "main.h"
 
 using bolt::controller::UartServoController;
 using bolt::serial::UartAsyncSerialPort;
 
 using bolt::controller::EncoderController;
 using bolt::controller::MotorController;
+using bolt::controller::PWMServoController;
 
 using bolt::timer::CountAsyncTimerPort;
 using bolt::timer::CountSyncTimerPort;
 using bolt::timer::PROC_HandleTypeDef;
 using bolt::timer::PWMSyncTimerPort;
 
+using bolt::pin::GpioOutputPin;
 using bolt::can::CanBusAsyncPort;
 
 UartAsyncSerialPort *gUart1 = nullptr;
@@ -29,6 +32,7 @@ UartAsyncSerialPort *gUart1 = nullptr;
 CanBusAsyncPort *gCanBus = nullptr;
 
 UartServoController *gUartServo = nullptr;
+PWMServoController *gPwmServo = nullptr;
 MotorController *gMotorController = nullptr;
 EncoderController *gEncoderController = nullptr;
 
@@ -55,6 +59,22 @@ extern "C" void AppPeripheralsInit()
 
     static MotorController motorController(&syncTimerPort1, &syncTimerPort2);
     gMotorController = &motorController;
+
+    int32_t ch_pwm_servo[4] = {-1, -1, -1, -1};
+    int32_t ch_pwmn_servo[4] = {-1, -1, -1, -1};
+
+    static PWMSyncTimerPort syncTimerPortServo(&htim7, ch_pwm_servo, ch_pwmn_servo);
+
+    static GpioOutputPin servoPin0(S1_GPIO_Port, S1_Pin);
+    static GpioOutputPin servoPin1(S2_GPIO_Port, S2_Pin);
+    static GpioOutputPin servoPin2(S3_GPIO_Port, S3_Pin);
+    static GpioOutputPin servoPin3(S4_GPIO_Port, S4_Pin);
+
+    static PWMServoController pwmServoController(&syncTimerPortServo,
+        &servoPin0, &servoPin1, &servoPin2, &servoPin3);
+    gPwmServo = &pwmServoController;
+
+    HAL_TIM_Base_Start_IT(&htim7);
 
     static PROC_HandleTypeDef ptim1;
     ptim1.timer = 20;

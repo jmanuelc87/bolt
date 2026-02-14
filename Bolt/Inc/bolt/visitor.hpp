@@ -31,7 +31,7 @@ namespace bolt
 
         virtual void visit(const PwmServoFrame &f)
         {
-            (void)f;
+            gPwmServo->setAngle(f.servo, f.angle);
         }
 
         virtual void visit(const UartServoFrame &f)
