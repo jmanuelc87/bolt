@@ -42,7 +42,7 @@ See @docs/FIRMWARE.md for full spec
 
 - **Visitor pattern**: `FrameVisitor` base class → `AppVisitor` handles each frame type. Decouples frame definitions (`frames.hpp`) from processing logic.
 - **Template Handle Registry**: `HandleRegistry<Controller, HandleType>` maps HAL peripheral handles to C++ controller instances, bridging C interrupt callbacks to OOP controllers.
-- **Hardware abstraction interfaces** (`Bolt/Inc/bolt/interface/`): `OutputPin`, `SerialPort`, `AsyncSerialPort`, `CanBus`, `PWMTimer`, `CountTimer` — all concrete implementations wrap STM32 HAL calls.
+- **Hardware abstraction interfaces** (`Bolt/Inc/bolt/interface/`): `OutputPin`, `SerialPort`, `AsyncSerialPort`, `CanBus`, `PWMTimer`, `CountTimer`, `SpiSyncPort` — all concrete implementations wrap STM32 HAL calls.
 - **CAN ISO-TP transport layer**: `CanBusAsyncPort` implements ISO-TP segmentation with single/first/consecutive frames and flow control (std IDs: 0x700 RX, 0x702 TX, 0x701 FC).
 - **Compile-time communication switch**: `USE_CANBUS` macro (defined in `CMakeLists.txt`) selects between UART and CAN bus modes.
 
@@ -65,10 +65,12 @@ See @docs/FIRMWARE.md for full spec
 - **ServoController (PWM)**: 4 servos via TIM7 software PWM with GPIO pins (not hardware PWM channels)
 - **ServoController (UART)**: 6 servos via serial protocol on USART3, pulse range 96-4000
 - **EncoderController**: 4 encoders on TIM2/3/4/5, 2464 CPR, 20ms sampling, low-pass filtered (alpha=0.2)
+- **ICM20948Controller**: 9-axis IMU (accel/gyro/mag + temperature) over SPI2 with software NSS. Uses ICM20948's internal I2C master to read AK09916 magnetometer at 100Hz. Bank-switched register access (4 user banks via register 0x7F). `readAll()` does a 14-byte burst read for accel/gyro/temp, then reads 8 bytes of magnetometer data from the I2C passthrough buffer.
+- **PIDController** (WIP): Generic PID controller using `ProcessAsyncTimerPort` for deterministic sampling. Configurable Kp/Ki/Kd gains with output clamping.
 
 ### Inter-task Communication
 
-Two FreeRTOS queues (`processQueue`, `queryQueue`) with 8-message buffers each. Message struct: 16-bit size + 38-byte data buffer. Response frames use separate type IDs (PONG=0x01, RPMS=0x02, ANGLE=0x03).
+Two FreeRTOS queues (`processQueue`, `queryQueue`) with 8-message buffers each. Message struct: 16-bit size + 38-byte data buffer. Response frames use separate type IDs (PONG=0x01, RPMS=0x02, ANGLE=0x03, IMU=0x04) defined in `Bolt/Inc/definitions.hpp`.
 
 ### Peripheral Mapping
 
@@ -78,7 +80,8 @@ Two FreeRTOS queues (`processQueue`, `queryQueue`) with 8-message buffers each. 
 - **TIM2/3/4/5**: Encoder counters
 - **USART1**: Host communication (when not using CAN)
 - **USART3**: Serial servo bus
-- Global peripheral pointers (`gUart1`, `gCanBus`, `gMotorController`, etc.) initialized in `AppPeripheralsInit()` in `peripherals.hpp`
+- **SPI2**: ICM20948 IMU (blocking SPI with software NSS via GPIO)
+- Global peripheral pointers (`gUart1`, `gCanBus`, `gMotorController`, `gImuController`, etc.) initialized in `AppPeripheralsInit()` in `peripherals.hpp`
 
 ## Conventions
 

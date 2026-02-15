@@ -36,6 +36,6 @@ extern "C" void v2Process_Task(void *argument)
             }
         }
 
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }

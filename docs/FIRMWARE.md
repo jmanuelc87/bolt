@@ -30,6 +30,7 @@ All multi-byte integers are encoded **big-endian**.
 | 0x05 | Serial Servo Move   | Host -> Board | Move a serial servo to a position   |
 | 0x06 | Serial Servo Angle  | Host -> Board | Request current angle of a servo    |
 | 0x07 | Get Encoder Values  | Host -> Board | Request encoder readings            |
+| 0x08 | Get IMU Values      | Host -> Board | Request IMU sensor readings         |
 
 ---
 
@@ -142,4 +143,33 @@ Requests the current encoder tick count for a motor. The board responds with the
 
 ```
 AA 07 00 84 98 55
+```
+
+---
+
+### 0x08 -- Get IMU Values
+
+Requests accelerometer, gyroscope, magnetometer, and temperature readings from the ICM20948 IMU. Empty payload.
+
+The board responds with a 20-byte payload containing 10 signed 16-bit integers (big-endian):
+
+| Field   | Size | Description                |
+|---------|:----:|----------------------------|
+| accel_x | 2    | Accelerometer X axis       |
+| accel_y | 2    | Accelerometer Y axis       |
+| accel_z | 2    | Accelerometer Z axis       |
+| gyro_x  | 2    | Gyroscope X axis           |
+| gyro_y  | 2    | Gyroscope Y axis           |
+| gyro_z  | 2    | Gyroscope Z axis           |
+| mag_x   | 2    | Magnetometer X axis        |
+| mag_y   | 2    | Magnetometer Y axis        |
+| mag_z   | 2    | Magnetometer Z axis        |
+| temp    | 2    | Temperature                |
+
+Response frame type: `0x04` (IMU)
+
+**Example** -- Request IMU values:
+
+```
+AA 08 00 A6 D8 55
 ```
