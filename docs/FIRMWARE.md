@@ -31,6 +31,9 @@ All multi-byte integers are encoded **big-endian**.
 | 0x06 | Serial Servo Angle  | Host -> Board | Request current angle of a servo    |
 | 0x07 | Get Encoder Values  | Host -> Board | Request encoder readings            |
 | 0x08 | Get IMU Values      | Host -> Board | Request IMU sensor readings         |
+| 0x09 | PID Motor Set RPM   | Host -> Board | Set target RPM for PID motor control|
+| 0x0A | PID Motor Stop      | Host -> Board | Stop PID motor control              |
+| 0x0B | PID Set Gains       | Host -> Board | Set PID gains (Kp, Ki, Kd)          |
 
 ---
 
@@ -172,4 +175,57 @@ Response frame type: `0x04` (IMU)
 
 ```
 AA 08 00 A6 D8 55
+```
+
+---
+
+### 0x09 -- PID Motor Set RPM
+
+Sets a target RPM for closed-loop PID motor control. The PID controller reads encoder RPM as feedback and drives the motor PWM output to reach the target.
+
+| Field    | Size | Range       | Description                              |
+|----------|:----:|-------------|------------------------------------------|
+| motor_id | 1    | 1 -- 4      | Motor channel                            |
+| rpm      | 4    | IEEE-754    | Target RPM (float, little-endian bytes)  |
+
+**Example** -- Motor 1 at 120.0 RPM (float `0x42F00000`):
+
+```
+AA 09 05 01 00 00 F0 42 48 15 55
+```
+
+---
+
+### 0x0A -- PID Motor Stop
+
+Stops PID motor control and optionally applies braking. Resets the PID integrator state.
+
+| Field    | Size | Range  | Description                    |
+|----------|:----:|--------|--------------------------------|
+| motor_id | 1    | 1 -- 4 | Motor channel                  |
+| brake    | 1    | 0 or 1 | 0 = coast, 1 = active brake   |
+
+**Example** -- Stop PID motor 1, coast:
+
+```
+AA 0A 02 01 00 B1 3A 55
+```
+
+---
+
+### 0x0B -- PID Set Gains
+
+Sets the PID controller gains (Kp, Ki, Kd) for a specific motor channel. All gains are IEEE-754 floats in little-endian byte order.
+
+| Field    | Size | Range    | Description                              |
+|----------|:----:|----------|------------------------------------------|
+| motor_id | 1    | 1 -- 4   | Motor channel                            |
+| kp       | 4    | IEEE-754 | Proportional gain (float, little-endian) |
+| ki       | 4    | IEEE-754 | Integral gain (float, little-endian)     |
+| kd       | 4    | IEEE-754 | Derivative gain (float, little-endian)   |
+
+**Example** -- Motor 1, Kp=1.0, Ki=0.1, Kd=0.01:
+
+```
+AA 0B 0D 01 00 00 80 3F CD CC CC 3D 0A D7 23 3C E7 C4 55
 ```

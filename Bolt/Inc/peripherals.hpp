@@ -9,6 +9,7 @@
 #include "controller/motor_controller.hpp"
 #include "controller/encoder_controller.hpp"
 #include "controller/icm20948_controller.hpp"
+#include "controller/pid_motor_controller.hpp"
 
 #include "definitions.hpp"
 #include "main.h"
@@ -20,6 +21,7 @@ using bolt::serial::UartAsyncSerialPort;
 using bolt::controller::EncoderController;
 using bolt::controller::ICM20948Controller;
 using bolt::controller::MotorController;
+using bolt::controller::PIDMotorController;
 using bolt::controller::PWMServoController;
 
 using bolt::timer::CountAsyncTimerPort;
@@ -27,8 +29,8 @@ using bolt::timer::CountSyncTimerPort;
 using bolt::timer::PROC_HandleTypeDef;
 using bolt::timer::PWMSyncTimerPort;
 
-using bolt::pin::GpioOutputPin;
 using bolt::can::CanBusAsyncPort;
+using bolt::pin::GpioOutputPin;
 using bolt::spi::SpiSyncPort;
 
 UartAsyncSerialPort *gUart1 = nullptr;
@@ -40,6 +42,7 @@ PWMServoController *gPwmServo = nullptr;
 MotorController *gMotorController = nullptr;
 EncoderController *gEncoderController = nullptr;
 ICM20948Controller *gImuController = nullptr;
+PIDMotorController *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
 
 extern "C" void AppPeripheralsInit()
 {
@@ -76,14 +79,14 @@ extern "C" void AppPeripheralsInit()
     static GpioOutputPin servoPin3(S4_GPIO_Port, S4_Pin);
 
     static PWMServoController pwmServoController(&syncTimerPortServo,
-        &servoPin0, &servoPin1, &servoPin2, &servoPin3);
+                                                 &servoPin0, &servoPin1, &servoPin2, &servoPin3);
     gPwmServo = &pwmServoController;
 
     HAL_TIM_Base_Start_IT(&htim7);
 
     static PROC_HandleTypeDef ptim1;
-    ptim1.timer = 20;
-    ptim1.counter = 20;
+    ptim1.timer = 100;
+    ptim1.counter = 100;
 
     static ProcessAsyncTimerPort procAsyncTimerPort(&ptim1);
 
@@ -99,6 +102,24 @@ extern "C" void AppPeripheralsInit()
     static SpiSyncPort spiPort(&hspi2, &imuCsPin);
     static ICM20948Controller imuController(&spiPort);
     gImuController = &imuController;
+
+    static PROC_HandleTypeDef pidTimHandles[4];
+    static ProcessAsyncTimerPort *pidSamplers[4];
+    static PIDMotorController *pidControllers[4];
+
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        pidTimHandles[i].timer = 20;
+        pidTimHandles[i].counter = 20;
+        pidSamplers[i] = new ProcessAsyncTimerPort(&pidTimHandles[i]);
+        pidControllers[i] = new PIDMotorController(
+            pidSamplers[i],
+            1.0f, 0.0f, 0.0f, 0.1f,
+            -2000.0f, 2000.0f,
+            &motorController, &encoderController,
+            i + 1);
+        gPidMotorController[i] = pidControllers[i];
+    }
 }
 
 #endif /* BOLT_PERIPHERALS_HPP */

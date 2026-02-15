@@ -2,6 +2,7 @@
 #define BOLT_PARSER_HPP
 
 #include <cstdint>
+#include <cstring>
 
 #include "frames.hpp"
 #include "utils.h"
@@ -189,6 +190,35 @@ namespace bolt
                     return 0;
 
                 return &igvm_;
+
+            case FT_PidMotorSetRpm:
+                if (rf.len != 5)
+                    return 0;
+
+                pmsr_.motor = rf.payload[0];
+                memcpy(&pmsr_.rpm, &rf.payload[1], sizeof(float));
+
+                return &pmsr_;
+
+            case FT_PidMotorStop:
+                if (rf.len != 2)
+                    return 0;
+
+                pms_.motor = rf.payload[0];
+                pms_.brake = rf.payload[1];
+
+                return &pms_;
+
+            case FT_PidSetGains:
+                if (rf.len != 13)
+                    return 0;
+
+                psg_.motor = rf.payload[0];
+                memcpy(&psg_.kp, &rf.payload[1], sizeof(float));
+                memcpy(&psg_.ki, &rf.payload[5], sizeof(float));
+                memcpy(&psg_.kd, &rf.payload[9], sizeof(float));
+
+                return &psg_;
             }
             return 0;
         }
@@ -202,6 +232,9 @@ namespace bolt
         UartServoGetAngleFrame usgam_;
         EncoderGetValuesFrame egvm_;
         ImuGetValuesFrame igvm_;
+        PidMotorSetRpmFrame pmsr_;
+        PidMotorStopFrame pms_;
+        PidSetGainsFrame psg_;
     };
 }
 

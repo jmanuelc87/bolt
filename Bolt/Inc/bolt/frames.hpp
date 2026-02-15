@@ -17,7 +17,10 @@ namespace bolt
         FT_UartServoMove = 0x05,
         FT_UartServoGetAngle = 0x06,
         FT_EncoderGetValues = 0x07,
-        FT_ImuGetValues = 0x08
+        FT_ImuGetValues = 0x08,
+        FT_PidMotorSetRpm = 0x09,
+        FT_PidMotorStop = 0x0A,
+        FT_PidSetGains = 0x0B
     };
 
     struct PingFrame;
@@ -28,6 +31,9 @@ namespace bolt
     struct UartServoGetAngleFrame;
     struct EncoderGetValuesFrame;
     struct ImuGetValuesFrame;
+    struct PidMotorSetRpmFrame;
+    struct PidMotorStopFrame;
+    struct PidSetGainsFrame;
 
     struct FrameVisitor
     {
@@ -40,6 +46,9 @@ namespace bolt
         virtual void visit(const UartServoGetAngleFrame &f) = 0;
         virtual void visit(const EncoderGetValuesFrame &f) = 0;
         virtual void visit(const ImuGetValuesFrame &f) = 0;
+        virtual void visit(const PidMotorSetRpmFrame &f) = 0;
+        virtual void visit(const PidMotorStopFrame &f) = 0;
+        virtual void visit(const PidSetGainsFrame &f) = 0;
     };
 
     struct Frame
@@ -111,6 +120,35 @@ namespace bolt
     struct ImuGetValuesFrame : public Frame
     {
         ImuGetValuesFrame() : Frame(FT_ImuGetValues) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct PidMotorSetRpmFrame : public Frame
+    {
+        uint8_t motor;
+        float rpm;
+
+        PidMotorSetRpmFrame() : Frame(FT_PidMotorSetRpm), motor(0), rpm(0.0f) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct PidMotorStopFrame : public Frame
+    {
+        uint8_t motor;
+        uint8_t brake;
+
+        PidMotorStopFrame() : Frame(FT_PidMotorStop), motor(0), brake(0) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct PidSetGainsFrame : public Frame
+    {
+        uint8_t motor;
+        float kp;
+        float ki;
+        float kd;
+
+        PidSetGainsFrame() : Frame(FT_PidSetGains), motor(0), kp(0.0f), ki(0.0f), kd(0.0f) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 

@@ -107,6 +107,33 @@ namespace bolt
             m.size = build_frame(IMU, payload, 20, m.data, sizeof(m.data));
             osMessageQueuePut(queryQueue, &m, 0, 0);
         }
+
+        virtual void visit(const PidMotorSetRpmFrame &f)
+        {
+            uint8_t idx = f.motor - 1;
+            if (idx < 4 && gPidMotorController[idx])
+            {
+                gPidMotorController[idx]->setTargetRPM(f.rpm);
+            }
+        }
+
+        virtual void visit(const PidMotorStopFrame &f)
+        {
+            uint8_t idx = f.motor - 1;
+            if (idx < 4 && gPidMotorController[idx])
+            {
+                gPidMotorController[idx]->stop(f.brake);
+            }
+        }
+
+        virtual void visit(const PidSetGainsFrame &f)
+        {
+            uint8_t idx = f.motor - 1;
+            if (idx < 4 && gPidMotorController[idx])
+            {
+                gPidMotorController[idx]->setGains(f.kp, f.ki, f.kd);
+            }
+        }
     };
 }
 
