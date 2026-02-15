@@ -74,6 +74,39 @@ namespace bolt
 
             send_payload(RPMS, array, 4);
         }
+
+        virtual void visit(const ImuGetValuesFrame &f)
+        {
+            (void)f;
+            bolt::controller::ICM20948Data data{};
+            gImuController->readAll(data);
+
+            uint8_t payload[20];
+            payload[0] = (uint8_t)(data.accel_x >> 8);
+            payload[1] = (uint8_t)(data.accel_x & 0xFF);
+            payload[2] = (uint8_t)(data.accel_y >> 8);
+            payload[3] = (uint8_t)(data.accel_y & 0xFF);
+            payload[4] = (uint8_t)(data.accel_z >> 8);
+            payload[5] = (uint8_t)(data.accel_z & 0xFF);
+            payload[6] = (uint8_t)(data.gyro_x >> 8);
+            payload[7] = (uint8_t)(data.gyro_x & 0xFF);
+            payload[8] = (uint8_t)(data.gyro_y >> 8);
+            payload[9] = (uint8_t)(data.gyro_y & 0xFF);
+            payload[10] = (uint8_t)(data.gyro_z >> 8);
+            payload[11] = (uint8_t)(data.gyro_z & 0xFF);
+            payload[12] = (uint8_t)(data.mag_x >> 8);
+            payload[13] = (uint8_t)(data.mag_x & 0xFF);
+            payload[14] = (uint8_t)(data.mag_y >> 8);
+            payload[15] = (uint8_t)(data.mag_y & 0xFF);
+            payload[16] = (uint8_t)(data.mag_z >> 8);
+            payload[17] = (uint8_t)(data.mag_z & 0xFF);
+            payload[18] = (uint8_t)(data.temperature >> 8);
+            payload[19] = (uint8_t)(data.temperature & 0xFF);
+
+            Message m;
+            m.size = build_frame(IMU, payload, 20, m.data, sizeof(m.data));
+            osMessageQueuePut(queryQueue, &m, 0, 0);
+        }
     };
 }
 

@@ -8,14 +8,17 @@
 #include "controller/servo_controller.hpp"
 #include "controller/motor_controller.hpp"
 #include "controller/encoder_controller.hpp"
+#include "controller/icm20948_controller.hpp"
 
 #include "definitions.hpp"
 #include "main.h"
+#include "spi.h"
 
 using bolt::controller::UartServoController;
 using bolt::serial::UartAsyncSerialPort;
 
 using bolt::controller::EncoderController;
+using bolt::controller::ICM20948Controller;
 using bolt::controller::MotorController;
 using bolt::controller::PWMServoController;
 
@@ -26,6 +29,7 @@ using bolt::timer::PWMSyncTimerPort;
 
 using bolt::pin::GpioOutputPin;
 using bolt::can::CanBusAsyncPort;
+using bolt::spi::SpiSyncPort;
 
 UartAsyncSerialPort *gUart1 = nullptr;
 
@@ -35,6 +39,7 @@ UartServoController *gUartServo = nullptr;
 PWMServoController *gPwmServo = nullptr;
 MotorController *gMotorController = nullptr;
 EncoderController *gEncoderController = nullptr;
+ICM20948Controller *gImuController = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {
@@ -89,6 +94,11 @@ extern "C" void AppPeripheralsInit()
 
     static EncoderController encoderController(&procAsyncTimerPort, &syncTimerPort3, &syncTimerPort4, &syncTimerPort5, &syncTimerPort6);
     gEncoderController = &encoderController;
+
+    static GpioOutputPin imuCsPin(ICM20948_CS_GPIO_Port, ICM20948_CS_Pin);
+    static SpiSyncPort spiPort(&hspi2, &imuCsPin);
+    static ICM20948Controller imuController(&spiPort);
+    gImuController = &imuController;
 }
 
 #endif /* BOLT_PERIPHERALS_HPP */

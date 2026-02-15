@@ -183,6 +183,12 @@ namespace bolt
                     return 0;
 
                 return &egvm_;
+
+            case FT_ImuGetValues:
+                if (rf.len != 0)
+                    return 0;
+
+                return &igvm_;
             }
             return 0;
         }
@@ -195,6 +201,7 @@ namespace bolt
         UartServoFrame usm_;
         UartServoGetAngleFrame usgam_;
         EncoderGetValuesFrame egvm_;
+        ImuGetValuesFrame igvm_;
     };
 }
 

@@ -15,6 +15,7 @@ enum : uint8_t
     PONG = 0x01,
     RPMS = 0x02,
     ANGLE = 0x03,
+    IMU = 0x04,
 };
 
 #endif /* BOLT_DEFINITIONS_HPP */

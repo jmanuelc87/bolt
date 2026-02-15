@@ -16,7 +16,8 @@ namespace bolt
         FT_ServoMove = 0x04,
         FT_UartServoMove = 0x05,
         FT_UartServoGetAngle = 0x06,
-        FT_EncoderGetValues = 0x07
+        FT_EncoderGetValues = 0x07,
+        FT_ImuGetValues = 0x08
     };
 
     struct PingFrame;
@@ -26,6 +27,7 @@ namespace bolt
     struct UartServoFrame;
     struct UartServoGetAngleFrame;
     struct EncoderGetValuesFrame;
+    struct ImuGetValuesFrame;
 
     struct FrameVisitor
     {
@@ -37,6 +39,7 @@ namespace bolt
         virtual void visit(const UartServoFrame &f) = 0;
         virtual void visit(const UartServoGetAngleFrame &f) = 0;
         virtual void visit(const EncoderGetValuesFrame &f) = 0;
+        virtual void visit(const ImuGetValuesFrame &f) = 0;
     };
 
     struct Frame
@@ -102,6 +105,12 @@ namespace bolt
     struct EncoderGetValuesFrame : public Frame
     {
         EncoderGetValuesFrame() : Frame(FT_EncoderGetValues) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct ImuGetValuesFrame : public Frame
+    {
+        ImuGetValuesFrame() : Frame(FT_ImuGetValues) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 
