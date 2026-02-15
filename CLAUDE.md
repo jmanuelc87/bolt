@@ -19,7 +19,25 @@ cmake --build --preset Debug
 STM32_Programmer_CLI -c port=SWD -w build/Debug/bolt.elf -hardRst
 ```
 
-Toolchain: `arm-none-eabi-gcc` with Ninja generator, `--specs=nano.specs` (newlib-nano). Build generates `compile_commands.json` for clangd/IDE integration. No unit test framework — testing is done on hardware. Linker script: `STM32F103XX_FLASH.ld` at repo root.
+Toolchain: `arm-none-eabi-gcc` with Ninja generator, `--specs=nano.specs` (newlib-nano). Build generates `compile_commands.json` for clangd/IDE integration. Linker script: `STM32F103XX_FLASH.ld` at repo root.
+
+### Host-based Tests (GoogleTest)
+
+```bash
+# Configure (from tests/ directory)
+cmake --preset default -S tests
+
+# Build
+cmake --build --preset default
+
+# Run all tests
+ctest --preset default
+
+# Run a single test binary directly (from repo root)
+./build/tests/bolt_tests --gtest_filter="TestSuiteName.TestName"
+```
+
+Tests live in `tests/` with a separate CMake project that fetches GoogleTest v1.15.2. Test build output goes to `build/tests/`. HAL dependencies are replaced by stub headers in `tests/stubs/` (stubs exist for: `stm32f1xx_hal.h`, `cmsis_os.h`, `main.h`, `can.h`, `spi.h`, `tim.h`, `usart.h`, `cmsis_os2.h`, `peripherals.hpp`). New test files must be added to `add_executable(bolt_tests ...)` in `tests/CMakeLists.txt`. If a new test includes HAL headers not yet stubbed, add a minimal stub to `tests/stubs/`.
 
 ## Architecture
 
@@ -39,7 +57,7 @@ FreeRTOS heap budget: 9000 bytes (`configTOTAL_HEAP_SIZE`). `AppQueuesInit()` mu
 
 Binary protocol: `[SOF=0xAA][TYPE:1][LEN:1][PAYLOAD:LEN][CRC16-CCITT:2][EOF=0x55]`
 
-See @docs/FIRMWARE.md for full spec
+See `docs/FIRMWARE.md` for full spec
 
 ### Key Design Patterns
 
