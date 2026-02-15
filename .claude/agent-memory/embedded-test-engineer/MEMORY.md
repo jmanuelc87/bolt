@@ -52,3 +52,26 @@ Message struct layout: `{ uint16_t size; uint8_t data[38]; }` = 40 bytes total.
 - `vTaskDelay` is a no-op in `cmsis_os.h` — safe to use in visitor tests
 - `osMessageQueuePut` in `cmsis_os2.h` captures the message (C++17 inline)
 - `cmsis_os.h` includes `cmsis_os2.h` — include order matters
+
+## frames.hpp Known Issues
+- `MotorStopFrame()` constructor only initialises `brake(0)`, leaves `motor` uninitialised
+  Do NOT write a DefaultFieldValues test that reads `frame.motor` without assigning first.
+  Correct pattern: write a `MotorFieldWriteAndRead` test (assign then read), not a default check.
+
+## test_frames.cpp Coverage (complete as of 2026-02-15)
+Sections added beyond original:
+1. `FrameTypeEnumTest` — verifies all 11 wire-protocol numeric values (0x01–0x0B) and
+   underlying type is uint8_t via static_assert.
+2. `RawFrameTest` — payload size == MAX_PAYLOAD, type/len/crc/payload write-read,
+   zero-init, boundary index, CRC=0xFFFF.
+3. `AcceptDispatchesToExactlyOneVisitMethod` — added to every concrete frame test;
+   uses `total_calls` counter on MockVisitor.
+4. `TypeAccessibleViaBasePointer` — const Frame* reads correct type field.
+5. `AcceptViaBasePointerDispatchesCorrectly` — virtual dispatch through Frame*.
+6. Field write/read tests for all frame fields (including int16_t sign, uint16_t max,
+   float negative, independent gain fields for PidSetGainsFrame).
+7. `VisitorExclusivityTest` — 11 tests, one per frame; NONE precondition + total_calls==1.
+8. `PolymorphicDispatchTest` — 11 tests via Frame* base pointer.
+9. `FrameVisitorDestructorTest` — virtual destructor check via new/delete.
+10. `FrameTypeConstTest` — static_assert that Frame::type is const.
+11. `SequentialAcceptTest` — two visitors for two frames, same visitor for two frames.
