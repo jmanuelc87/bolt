@@ -18,6 +18,7 @@ add_executable(bolt_tests
     test_frames.cpp
     test_parser.cpp
     test_visitor.cpp
+    test_flash_controller.cpp
 )
 
 target_include_directories(bolt_tests PRIVATE

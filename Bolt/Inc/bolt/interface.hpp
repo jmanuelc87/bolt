@@ -66,6 +66,15 @@ namespace bolt
         virtual void transmitReceive(const uint8_t *txData, uint8_t *rxData, uint16_t size) = 0;
         virtual ~SpiPort() = default;
     };
+
+    class FlashMemory
+    {
+    public:
+        virtual void read(uint32_t address, uint8_t *buffer, uint16_t size) = 0;
+        virtual void write(uint32_t address, const uint8_t *data, uint16_t size) = 0;
+        virtual void eraseSector(uint32_t address) = 0;
+        virtual ~FlashMemory() = default;
+    };
 }
 
 #endif /* BOLT_INTERFACE_HPP */
