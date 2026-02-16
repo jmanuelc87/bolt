@@ -11,7 +11,7 @@
 
 using bolt::registry::HandleRegistry;
 
-#define RX_BUF_MAX 32
+#define RX_BUF_MAX 38
 #define TX_TIMEOUT_MS 100
 
 #define CAN_RX_ID_DATA 0x700
@@ -78,7 +78,12 @@ namespace bolt
                 }
             }
 
-            ~CanBusAsyncPort() {};
+            ~CanBusAsyncPort()
+            {
+                HAL_CAN_DeactivateNotification(hcan_, CAN_IT_RX_FIFO0_MSG_PENDING);
+                HAL_CAN_Stop(hcan_);
+                HandleRegistry<CanBusAsyncPort, CAN_HandleTypeDef>::registry().erase(hcan_);
+            }
 
             void isotpSend(const uint8_t *data, uint16_t len);
 

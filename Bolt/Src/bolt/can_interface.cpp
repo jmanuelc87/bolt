@@ -11,7 +11,7 @@ static struct
     uint8_t active;  // 0=idle, 1=reassembling
 } rx;
 
-struct
+static struct
 {
     volatile uint8_t cts;   // 1 when we may continue sending CFs
     volatile uint8_t stmin; // inter-frame separation (ms), 0=asap
@@ -58,17 +58,21 @@ void bolt::can::CanBusAsyncPort::isotpSend(const uint8_t *data, uint16_t len)
     const uint8_t first_payload = 6;
     memcpy(&ff[2], &data[off], first_payload);
     off += first_payload;
-    sendMessage(CAN_TX_ID_DATA, ff, 8);
 
     // Wait for Flow Control (CTS)
+    // Clear before sending FF to avoid TOCTOU race if FC arrives immediately
     tx.cts = 0;
     tx.stmin = 0;
+    sendMessage(CAN_TX_ID_DATA, ff, 8);
 
     uint32_t start = HAL_GetTick();
     while (!tx.cts && (HAL_GetTick() - start) < TX_TIMEOUT_MS)
     {
         vTaskDelay(pdMS_TO_TICKS(1));
     }
+
+    if (!tx.cts)
+        return; // FC(CTS) not received — abort send
 
     // Send Consecutive Frames
     uint8_t sn = 1;
@@ -137,7 +141,7 @@ void bolt::can::CanBusAsyncPort::isotpRxOnCan(uint8_t *data, uint8_t dlc)
 
     case PCI_CF:
     {
-        if (!rx.active)
+        if (!rx.active || dlc < 2)
             return;
         uint8_t sn = data[0] & 0x0F;
         if (sn != rx.next_sn)
