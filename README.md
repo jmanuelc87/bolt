@@ -4,7 +4,6 @@ Embedded firmware for an STM32F103XE (ARM Cortex-M3) robotics platform. Bolt con
 
 ![Yahboom YB-ERF01-V3.0 Board](docs/board.png)
 
-
 ## Physical Architecture
 
 A host computer (Jetson Orin Nano or PC) sends commands to the YB-ERF01-V3.0 board through a CANable USB-to-CAN adapter. The board drives up to 4 DC motors via PWM and up to 10 servos (4 PWM, 6 serial). Encoder feedback from each motor is read by the board and reported back to the host over the same CAN bus link. The entire system is powered by a 12V battery connected to the board's DC input.
@@ -21,3 +20,35 @@ Jetson Orin Nano"] -->|USB| CANable["CANable"]
     Board -->|PWM / Serial| Servo["Servo Motors"]
 ```
 
+## CAN Bus ISO-TP Communication
+
+The host (Argus driver) and firmware (Bolt) exchange framed commands over CAN bus using ISO-TP segmentation. Single frames carry messages up to 7 bytes; larger messages use a First Frame / Flow Control / Consecutive Frame handshake. Three standard CAN IDs are used: `0x700` (host → firmware data), `0x701` (flow control, bidirectional), and `0x702` (firmware → host data).
+
+```mermaid
+sequenceDiagram
+    participant Host as Host (Argus)
+    participant FW as Firmware (Bolt)
+
+    Note over Host, FW: Single Frame command (payload ≤ 7 bytes)
+    Host->>FW: SF [0x700] — e.g. Ping, Motor Speed
+    FW->>FW: FrameParser → FrameDecoder → AppVisitor
+
+    Note over Host, FW: Single Frame response (payload ≤ 7 bytes)
+    FW->>Host: SF [0x702] — e.g. Pong
+
+    Note over Host, FW: Multi-frame command (payload > 7 bytes)
+    Host->>FW: FF [0x700] — First Frame (6 data bytes + total length)
+    FW->>Host: FC CTS [0x701] — Flow Control (Clear To Send + STmin)
+    loop Consecutive Frames
+        Host->>FW: CF [0x700] — up to 7 data bytes, SN 1..F
+    end
+    FW->>FW: Reassemble → FrameParser → AppVisitor
+
+    Note over Host, FW: Multi-frame response (payload > 7 bytes)
+    FW->>Host: FF [0x702] — First Frame
+    Host->>FW: FC CTS [0x701] — Flow Control
+    loop Consecutive Frames
+        FW->>Host: CF [0x702] — up to 7 data bytes, SN 1..F
+    end
+    Host->>Host: Reassemble → parse response
+```
