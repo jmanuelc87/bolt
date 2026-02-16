@@ -1,4 +1,4 @@
-# Bolt Firmware Protocol
+# Bolt Communication Protocol
 
 All communication between the host and the board uses a compact binary frame protocol. Every frame follows the same envelope structure, making parsing straightforward and consistent across all command types.
 
