@@ -1,6 +1,9 @@
 #ifndef BOLT_ENCODER_CONTROLLER_HPP
 #define BOLT_ENCODER_CONTROLLER_HPP
 
+#include <array>
+#include <cstdint>
+
 #include "interface/timer_interface.hpp"
 
 using bolt::timer::CountSyncTimerPort;
@@ -17,60 +20,49 @@ namespace bolt
                               CountSyncTimerPort *port1,
                               CountSyncTimerPort *port2,
                               CountSyncTimerPort *port3,
-                              CountSyncTimerPort *port4) : sampler_(sampler)
+                              CountSyncTimerPort *port4)
+                : sampler_(sampler),
+                  ports_{port1, port2, port3, port4}
             {
-                setPorts(port1, port2, port3, port4);
-
                 sampler_->timElapsedCompleteCallback = [this]()
                 {
-                    for (uint8_t i = 0; i < 4; i++)
+                    for (uint8_t i = 0; i < NUM_ENCODERS; i++)
                     {
-                        int32_t diff = port[i]->count();
-                        enc_pos_counts[i] += diff;
-                        enc_diff_last[i] = diff;
-                        vel_cps[i] = (1.0f - alpha) * vel_cps[i] + alpha * (float)enc_diff_last[i];
+                        int32_t diff = ports_[i]->count();
+                        enc_pos_counts_[i] += diff;
+                        vel_cps_[i] = (1.0f - ALPHA) * vel_cps_[i] + ALPHA * static_cast<float>(diff);
                     }
                 };
             }
 
-            ~EncoderController() {}
+            ~EncoderController() = default;
 
             float getCPS(uint8_t id)
             {
-                return vel_cps[id - 1] * 100.0f;
+                return vel_cps_[id - 1] * 100.0f;
             }
 
             float getRPM(uint8_t id)
             {
-                return getCPS(id) * 60.f / ENCODER_CPR;
+                return getCPS(id) * 60.0f / ENCODER_CPR;
             }
 
             int32_t getCounts(uint8_t id)
             {
-                return enc_pos_counts[id - 1];
+                return enc_pos_counts_[id - 1];
             }
 
         private:
+            static constexpr uint8_t NUM_ENCODERS = 4;
+            static constexpr float ALPHA = 0.2f;
+            static constexpr float ENCODER_CPR = 2464.0f;
+
             ProcessAsyncTimerPort *sampler_;
-            CountSyncTimerPort *port[4];
 
-            int32_t enc_pos_counts[4] = {0, 0, 0, 0};
-            int32_t enc_diff_last[4] = {0, 0, 0, 0};
+            std::array<CountSyncTimerPort *, NUM_ENCODERS> ports_;
 
-            float vel_cps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            const float alpha = 0.2f;
-
-            const int16_t ENCODER_CPR = 2464.0f;
-
-            uint8_t enc_div_ = 0;
-
-            void setPorts(CountSyncTimerPort *port1, CountSyncTimerPort *port2, CountSyncTimerPort *port3, CountSyncTimerPort *port4)
-            {
-                port[0] = port1;
-                port[1] = port2;
-                port[2] = port3;
-                port[3] = port4;
-            };
+            std::array<int32_t, NUM_ENCODERS> enc_pos_counts_{};
+            std::array<float, NUM_ENCODERS> vel_cps_{};
         };
     }
 }

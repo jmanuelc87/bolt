@@ -20,6 +20,39 @@ Jetson Orin Nano"] -->|USB| CANable["CANable"]
     Board -->|PWM / Serial| Servo["Servo Motors"]
 ```
 
+## Build
+
+### Firmware
+
+Requires `arm-none-eabi-gcc` toolchain. Available presets: `Debug`, `RelWithDebInfo`, `Release`, `MinSizeRel`.
+
+```bash
+# Configure
+cmake --preset Debug
+
+# Build
+cmake --build --preset Debug
+
+# Flash via SWD
+STM32_Programmer_CLI -c port=SWD -w build/Debug/bolt.elf -hardRst
+```
+
+### Tests (Host-based, GoogleTest)
+
+```bash
+# Configure
+cmake --preset default -S tests
+
+# Build
+cmake --build ./build/tests
+
+# Run all tests
+cd ./tests && ctest --preset default && cd ..
+
+# Run a single test by name
+./build/tests/bolt_tests --gtest_filter="TestSuiteName.TestName"
+```
+
 ## CAN Bus ISO-TP Communication
 
 The host (Argus driver) and firmware (Bolt) exchange framed commands over CAN bus using ISO-TP segmentation. Single frames carry messages up to 7 bytes; larger messages use a First Frame / Flow Control / Consecutive Frame handshake. Three standard CAN IDs are used: `0x700` (host → firmware data), `0x701` (flow control, bidirectional), and `0x702` (firmware → host data).
