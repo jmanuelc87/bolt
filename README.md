@@ -55,6 +55,14 @@ cd ./tests && ctest --preset default && cd ..
 
 ## Software Architecture
 
+The firmware follows a layered design that separates hardware access from application logic.
+
+**Interfaces** define abstract contracts for each peripheral type (`OutputPin`, `PWMTimer`, `SpiPort`, `FlashMemory`, etc.). Each interface is a pure virtual C++ class with no HAL dependencies, declared in `Bolt/Inc/bolt/interface.hpp`. Concrete implementations in `Bolt/Inc/bolt/interface/` wrap STM32 HAL calls behind these contracts, so the rest of the codebase never touches registers directly.
+
+**Controllers** implement domain logic on top of one or more interfaces. For example, `MotorController` receives a `PWMTimer` to drive DC motors, `EncoderController` uses `CountTimer` to track wheel rotations, and `ICM20948Controller` reads IMU data through a `SpiPort`. Controllers are stateful objects that own calibration, filtering, and protocol details. `PIDMotorController` extends `PIDController` by wiring an encoder as its feedback source and a motor as its output actuator.
+
+**Visitor** ties the protocol layer to the controllers. Incoming bytes flow through `FrameParser` (state machine) and `FrameDecoder` (type validation) to produce typed frame objects. Each frame calls `accept()` on the `AppVisitor`, which dispatches the command to the appropriate controller. This visitor pattern decouples frame definitions from processing logic, making it straightforward to add new commands without modifying the parser.
+
 ```mermaid
 classDiagram
     direction LR
