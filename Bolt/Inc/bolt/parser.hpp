@@ -220,6 +220,12 @@ namespace bolt
                 psg_.save = (rf.len == 14) ? rf.payload[13] : 0;
 
                 return &psg_;
+
+            case FT_GetBatteryData:
+                if (rf.len != 0)
+                    return 0;
+
+                return &gbd_;
             }
             return 0;
         }
@@ -236,6 +242,7 @@ namespace bolt
         PidMotorSetRpmFrame pmsr_;
         PidMotorStopFrame pms_;
         PidSetGainsFrame psg_;
+        GetBatteryDataFrame gbd_;
     };
 }
 

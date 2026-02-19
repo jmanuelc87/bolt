@@ -19,7 +19,8 @@ namespace
         IMU_GET_VALUES,
         PID_MOTOR_SET_RPM,
         PID_MOTOR_STOP,
-        PID_SET_GAINS
+        PID_SET_GAINS,
+        GET_BATTERY_DATA
     };
 
     // MockVisitor tracks which visit() was called last.
@@ -84,6 +85,11 @@ namespace
         void visit(const bolt::PidSetGainsFrame &) override
         {
             called = PID_SET_GAINS;
+            ++total_calls;
+        }
+        void visit(const bolt::GetBatteryDataFrame &) override
+        {
+            called = GET_BATTERY_DATA;
             ++total_calls;
         }
     };

@@ -277,5 +277,6 @@ inline EncoderController    *gEncoderController  = nullptr;
 inline ICM20948Controller   *gImuController      = nullptr;
 inline PIDMotorController   *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
 inline FlashController      *gFlashController    = nullptr;
+inline bolt::BatteryMonitor *gBatteryMonitor     = nullptr;
 
 #endif /* BOLT_PERIPHERALS_HPP */

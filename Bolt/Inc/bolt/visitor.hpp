@@ -142,6 +142,16 @@ namespace bolt
                 }
             }
         }
+
+        virtual void visit(const GetBatteryDataFrame &f)
+        {
+            (void)f;
+            if (gBatteryMonitor)
+            {
+                float array[] = {gBatteryMonitor->voltage(), gBatteryMonitor->percentage()};
+                send_payload(BATTERY, array, 2);
+            }
+        }
     };
 }
 

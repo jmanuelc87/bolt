@@ -49,6 +49,7 @@ EncoderController *gEncoderController = nullptr;
 ICM20948Controller *gImuController = nullptr;
 PIDMotorController *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
 FlashController *gFlashController = nullptr;
+bolt::BatteryMonitor *gBatteryMonitor = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {

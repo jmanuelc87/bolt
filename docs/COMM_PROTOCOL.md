@@ -34,6 +34,7 @@ All multi-byte integers are encoded **big-endian**.
 | 0x09 | PID Motor Set RPM   | Host -> Board | Set target RPM for PID motor control|
 | 0x0A | PID Motor Stop      | Host -> Board | Stop PID motor control              |
 | 0x0B | PID Set Gains       | Host -> Board | Set PID gains (Kp, Ki, Kd)          |
+| 0x0C | Get Battery Data    | Host -> Board | Request battery voltage and charge % |
 
 ---
 
@@ -237,4 +238,23 @@ AA 0B 0D 01 00 00 80 3F CD CC CC 3D 0A D7 23 3C E7 C4 55
 
 ```
 AA 0B 0E 01 00 00 80 3F CD CC CC 3D 0A D7 23 3C 01 A7 85 55
+```
+
+---
+
+### 0x0C -- Get Battery Data
+
+Empty payload. Requests the current battery voltage and charge percentage. The board responds with a frame containing two IEEE-754 floats (little-endian byte order).
+
+Response frame type: `0x05` (BATTERY)
+
+| Field      | Size | Description                          |
+|------------|:----:|--------------------------------------|
+| voltage    | 4    | Battery voltage in volts (float)     |
+| percentage | 4    | Charge level 0--100% (float)        |
+
+**Example** -- Request battery data:
+
+```
+AA 0C 00 C8 B8 55
 ```

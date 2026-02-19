@@ -20,7 +20,8 @@ namespace bolt
         FT_ImuGetValues = 0x08,
         FT_PidMotorSetRpm = 0x09,
         FT_PidMotorStop = 0x0A,
-        FT_PidSetGains = 0x0B
+        FT_PidSetGains = 0x0B,
+        FT_GetBatteryData = 0x0C
     };
 
     struct PingFrame;
@@ -34,6 +35,7 @@ namespace bolt
     struct PidMotorSetRpmFrame;
     struct PidMotorStopFrame;
     struct PidSetGainsFrame;
+    struct GetBatteryDataFrame;
 
     struct FrameVisitor
     {
@@ -49,6 +51,7 @@ namespace bolt
         virtual void visit(const PidMotorSetRpmFrame &f) = 0;
         virtual void visit(const PidMotorStopFrame &f) = 0;
         virtual void visit(const PidSetGainsFrame &f) = 0;
+        virtual void visit(const GetBatteryDataFrame &f) = 0;
     };
 
     struct Frame
@@ -150,6 +153,12 @@ namespace bolt
         uint8_t save;
 
         PidSetGainsFrame() : Frame(FT_PidSetGains), motor(0), kp(0.0f), ki(0.0f), kd(0.0f), save(0) {}
+        void accept(FrameVisitor &v) const { v.visit(*this); }
+    };
+
+    struct GetBatteryDataFrame : public Frame
+    {
+        GetBatteryDataFrame() : Frame(FT_GetBatteryData) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 
