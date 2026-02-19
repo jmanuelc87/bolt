@@ -75,6 +75,14 @@ namespace bolt
         virtual void eraseSector(uint32_t address) = 0;
         virtual ~FlashMemory() = default;
     };
+
+    class BatteryMonitor
+    {
+    public:
+        virtual float voltage() = 0;
+        virtual float percentage() = 0;
+        virtual ~BatteryMonitor() = default;
+    };
 }
 
 #endif /* BOLT_INTERFACE_HPP */

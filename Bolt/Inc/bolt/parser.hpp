@@ -210,13 +210,14 @@ namespace bolt
                 return &pms_;
 
             case FT_PidSetGains:
-                if (rf.len != 13)
+                if (rf.len != 13 && rf.len != 14)
                     return 0;
 
                 psg_.motor = rf.payload[0];
                 memcpy(&psg_.kp, &rf.payload[1], sizeof(float));
                 memcpy(&psg_.ki, &rf.payload[5], sizeof(float));
                 memcpy(&psg_.kd, &rf.payload[9], sizeof(float));
+                psg_.save = (rf.len == 14) ? rf.payload[13] : 0;
 
                 return &psg_;
             }

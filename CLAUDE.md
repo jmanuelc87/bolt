@@ -28,10 +28,10 @@ Toolchain: `arm-none-eabi-gcc` with Ninja generator, `--specs=nano.specs` (newli
 cmake --preset default -S tests
 
 # Build
-cmake --build --preset default
+cmake --build ./build/tests --preset default
 
 # Run all tests
-ctest --preset default
+cd ./tests && ctest --preset default && cd ..
 
 # Run a single test binary directly (from repo root)
 ./build/tests/bolt_tests --gtest_filter="TestSuiteName.TestName"

@@ -60,6 +60,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/motor_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/servo_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/spi_interface.cpp
+    ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/battery_monitor.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/icm20948_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/pid_controller.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/bolt/handle_registry.cpp

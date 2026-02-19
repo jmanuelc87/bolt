@@ -147,8 +147,9 @@ namespace bolt
         float kp;
         float ki;
         float kd;
+        uint8_t save;
 
-        PidSetGainsFrame() : Frame(FT_PidSetGains), motor(0), kp(0.0f), ki(0.0f), kd(0.0f) {}
+        PidSetGainsFrame() : Frame(FT_PidSetGains), motor(0), kp(0.0f), ki(0.0f), kd(0.0f), save(0) {}
         void accept(FrameVisitor &v) const { v.visit(*this); }
     };
 

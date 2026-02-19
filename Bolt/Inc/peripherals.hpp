@@ -10,6 +10,8 @@
 #include "controller/encoder_controller.hpp"
 #include "controller/icm20948_controller.hpp"
 #include "controller/pid_motor_controller.hpp"
+#include "controller/flash_controller.hpp"
+#include "interface/flash_interface.hpp"
 
 #include "definitions.hpp"
 #include "main.h"
@@ -30,6 +32,9 @@ using bolt::timer::PROC_HandleTypeDef;
 using bolt::timer::PWMSyncTimerPort;
 
 using bolt::can::CanBusAsyncPort;
+using bolt::controller::FlashController;
+using bolt::controller::FlashKey;
+using bolt::flash::InternalFlash;
 using bolt::pin::GpioOutputPin;
 using bolt::spi::SpiSyncPort;
 
@@ -43,6 +48,7 @@ MotorController *gMotorController = nullptr;
 EncoderController *gEncoderController = nullptr;
 ICM20948Controller *gImuController = nullptr;
 PIDMotorController *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
+FlashController *gFlashController = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {
@@ -103,18 +109,28 @@ extern "C" void AppPeripheralsInit()
     static ICM20948Controller imuController(&spiPort);
     gImuController = &imuController;
 
+    static InternalFlash internalFlash;
+    static FlashController flashController(&internalFlash, 0x0803FC00UL);
+    gFlashController = &flashController;
+
     static PROC_HandleTypeDef pidTimHandles[4];
     static ProcessAsyncTimerPort *pidSamplers[4];
     static PIDMotorController *pidControllers[4];
 
+    /* FlashKey layout: MOTOR1_KP=0, MOTOR1_KI=1, MOTOR1_KD=2, MOTOR2_KP=3, ... */
     for (uint8_t i = 0; i < 4; i++)
     {
+        uint8_t base = i * 3;
+        float kp = flashController.load(static_cast<FlashKey>(base + 0));
+        float ki = flashController.load(static_cast<FlashKey>(base + 1));
+        float kd = flashController.load(static_cast<FlashKey>(base + 2));
+
         pidTimHandles[i].timer = 20;
         pidTimHandles[i].counter = 20;
         pidSamplers[i] = new ProcessAsyncTimerPort(&pidTimHandles[i]);
         pidControllers[i] = new PIDMotorController(
             pidSamplers[i],
-            1.0f, 0.0f, 0.0f, 0.1f,
+            kp, ki, kd, 0.1f,
             -2000.0f, 2000.0f,
             &motorController, &encoderController,
             i + 1);

@@ -249,6 +249,11 @@ namespace bolt
 }
 
 // ---------------------------------------------------------------------------
+// FlashController — use real header (header-only, no HAL deps)
+// ---------------------------------------------------------------------------
+#include "bolt/controller/flash_controller.hpp"
+
+// ---------------------------------------------------------------------------
 // Using declarations matching the real peripherals.hpp so visitor.hpp's
 // unqualified global pointer types resolve correctly.
 // ---------------------------------------------------------------------------
@@ -258,6 +263,7 @@ using bolt::controller::ICM20948Controller;
 using bolt::controller::MotorController;
 using bolt::controller::PIDMotorController;
 using bolt::controller::PWMServoController;
+using bolt::controller::FlashController;
 
 // ---------------------------------------------------------------------------
 // Global pointers — declared inline so they can be included from multiple
@@ -270,5 +276,6 @@ inline UartServoController  *gUartServo          = nullptr;
 inline EncoderController    *gEncoderController  = nullptr;
 inline ICM20948Controller   *gImuController      = nullptr;
 inline PIDMotorController   *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
+inline FlashController      *gFlashController    = nullptr;
 
 #endif /* BOLT_PERIPHERALS_HPP */

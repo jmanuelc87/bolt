@@ -215,7 +215,7 @@ AA 0A 02 01 00 B1 3A 55
 
 ### 0x0B -- PID Set Gains
 
-Sets the PID controller gains (Kp, Ki, Kd) for a specific motor channel. All gains are IEEE-754 floats in little-endian byte order.
+Sets the PID controller gains (Kp, Ki, Kd) for a specific motor channel. All gains are IEEE-754 floats in little-endian byte order. An optional `save` flag persists the gains to flash memory so they survive power cycles.
 
 | Field    | Size | Range    | Description                              |
 |----------|:----:|----------|------------------------------------------|
@@ -223,9 +223,18 @@ Sets the PID controller gains (Kp, Ki, Kd) for a specific motor channel. All gai
 | kp       | 4    | IEEE-754 | Proportional gain (float, little-endian) |
 | ki       | 4    | IEEE-754 | Integral gain (float, little-endian)     |
 | kd       | 4    | IEEE-754 | Derivative gain (float, little-endian)   |
+| save     | 1    | 0 or 1   | Optional. 1 = persist to flash, 0 = RAM only |
 
-**Example** -- Motor 1, Kp=1.0, Ki=0.1, Kd=0.01:
+Payload length is 13 bytes without the `save` flag (backward compatible) or 14 bytes with it. When omitted, `save` defaults to 0 (gains are not saved to flash).
+
+**Example** -- Motor 1, Kp=1.0, Ki=0.1, Kd=0.01 (no save):
 
 ```
 AA 0B 0D 01 00 00 80 3F CD CC CC 3D 0A D7 23 3C E7 C4 55
+```
+
+**Example** -- Motor 1, Kp=1.0, Ki=0.1, Kd=0.01 (save to flash):
+
+```
+AA 0B 0E 01 00 00 80 3F CD CC CC 3D 0A D7 23 3C 01 A7 85 55
 ```

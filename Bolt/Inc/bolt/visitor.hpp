@@ -132,6 +132,14 @@ namespace bolt
             if (idx < 4 && gPidMotorController[idx])
             {
                 gPidMotorController[idx]->setGains(f.kp, f.ki, f.kd);
+
+                if (f.save && gFlashController)
+                {
+                    uint8_t base = idx * 3;
+                    gFlashController->store(static_cast<bolt::controller::FlashKey>(base + 0), f.kp);
+                    gFlashController->store(static_cast<bolt::controller::FlashKey>(base + 1), f.ki);
+                    gFlashController->store(static_cast<bolt::controller::FlashKey>(base + 2), f.kd);
+                }
             }
         }
     };
