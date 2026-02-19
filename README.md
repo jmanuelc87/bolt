@@ -53,6 +53,89 @@ cd ./tests && ctest --preset default && cd ..
 ./build/tests/bolt_tests --gtest_filter="TestSuiteName.TestName"
 ```
 
+## Software Architecture
+
+```mermaid
+classDiagram
+    direction LR
+
+    class FrameVisitor {
+        <<abstract>>
+        +visit(PingFrame)
+        +visit(MotorSpeedFrame)
+        +visit(PidSetGainsFrame)
+        ...()
+    }
+    class AppVisitor {
+        +visit(PingFrame)
+        +visit(MotorSpeedFrame)
+        +visit(PidSetGainsFrame)
+        ...()
+    }
+    FrameVisitor <|-- AppVisitor
+
+    class OutputPin {
+        <<interface>>
+        +setHigh()
+        +setLow()
+        +toggle()
+    }
+    class SerialPort {
+        <<interface>>
+        +transmit()
+        +receive()
+    }
+    class CanBus {
+        <<interface>>
+        +sendMessage()
+    }
+    class PWMTimer {
+        <<interface>>
+        +setPulses()
+    }
+    class CountTimer {
+        <<interface>>
+        +count()
+    }
+    class SpiPort {
+        <<interface>>
+        +transmit()
+        +receive()
+    }
+    class FlashMemory {
+        <<interface>>
+        +read()
+        +write()
+        +eraseSector()
+    }
+    class BatteryMonitor {
+        <<interface>>
+        +voltage()
+        +percentage()
+    }
+
+    class MotorController
+    class ServoController
+    class EncoderController
+    class ICM20948Controller
+    class PIDController
+    class PIDMotorController
+    class FlashController
+
+    PWMTimer <.. MotorController : uses
+    CountTimer <.. EncoderController : uses
+    SpiPort <.. ICM20948Controller : uses
+    FlashMemory <.. FlashController : uses
+    PIDController <|-- PIDMotorController
+
+    AppVisitor ..> MotorController : dispatches to
+    AppVisitor ..> ServoController : dispatches to
+    AppVisitor ..> EncoderController : dispatches to
+    AppVisitor ..> ICM20948Controller : dispatches to
+    AppVisitor ..> PIDMotorController : dispatches to
+    AppVisitor ..> FlashController : dispatches to
+```
+
 ## CAN Bus ISO-TP Communication
 
 The host (Argus driver) and firmware (Bolt) exchange framed commands over CAN bus using ISO-TP segmentation. Single frames carry messages up to 7 bytes; larger messages use a First Frame / Flow Control / Consecutive Frame handshake. Three standard CAN IDs are used: `0x700` (host → firmware data), `0x701` (flow control, bidirectional), and `0x702` (firmware → host data).
