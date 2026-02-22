@@ -220,3 +220,7 @@ sequenceDiagram
     end
     Host->>Host: Reassemble → parse response
 ```
+
+## Protocol
+
+Find details in the following file [protocol](docs/PROTOCOL.md)
