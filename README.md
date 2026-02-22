@@ -72,12 +72,14 @@ classDiagram
         +visit(PingFrame)
         +visit(MotorSpeedFrame)
         +visit(PidSetGainsFrame)
+        +visit(GetBatteryDataFrame)
         ...()
     }
     class AppVisitor {
         +visit(PingFrame)
         +visit(MotorSpeedFrame)
         +visit(PidSetGainsFrame)
+        +visit(GetBatteryDataFrame)
         ...()
     }
     FrameVisitor <|-- AppVisitor
@@ -93,9 +95,16 @@ classDiagram
         +transmit()
         +receive()
     }
+    class AsyncSerialPort {
+        <<interface>>
+        +transmit()
+    }
     class CanBus {
         <<interface>>
         +sendMessage()
+    }
+    class Timer {
+        <<interface>>
     }
     class PWMTimer {
         <<interface>>
@@ -105,10 +114,14 @@ classDiagram
         <<interface>>
         +count()
     }
+    class ProcessAsyncTimerPort {
+        +timElapsedCompleteCallback
+    }
     class SpiPort {
         <<interface>>
         +transmit()
         +receive()
+        +transmitReceive()
     }
     class FlashMemory {
         <<interface>>
@@ -122,8 +135,14 @@ classDiagram
         +percentage()
     }
 
+    Timer <|-- PWMTimer
+    Timer <|-- CountTimer
+
     class MotorController
-    class ServoController
+    class LedController
+    class BeepController
+    class PWMServoController
+    class UartServoController
     class EncoderController
     class ICM20948Controller
     class PIDController
@@ -131,17 +150,27 @@ classDiagram
     class FlashController
 
     PWMTimer <.. MotorController : uses
+    PWMTimer <|-- PWMServoController
+    AsyncSerialPort <|-- UartServoController
+    OutputPin <.. LedController : uses
+    OutputPin <.. BeepController : uses
     CountTimer <.. EncoderController : uses
+    ProcessAsyncTimerPort <.. EncoderController : uses
+    ProcessAsyncTimerPort <.. PIDController : uses
     SpiPort <.. ICM20948Controller : uses
     FlashMemory <.. FlashController : uses
     PIDController <|-- PIDMotorController
+    MotorController <.. PIDMotorController : uses
+    EncoderController <.. PIDMotorController : uses
 
     AppVisitor ..> MotorController : dispatches to
-    AppVisitor ..> ServoController : dispatches to
+    AppVisitor ..> PWMServoController : dispatches to
+    AppVisitor ..> UartServoController : dispatches to
     AppVisitor ..> EncoderController : dispatches to
     AppVisitor ..> ICM20948Controller : dispatches to
     AppVisitor ..> PIDMotorController : dispatches to
     AppVisitor ..> FlashController : dispatches to
+    AppVisitor ..> BatteryMonitor : dispatches to
 ```
 
 ## CAN Bus ISO-TP Communication
