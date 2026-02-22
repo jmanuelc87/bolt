@@ -67,6 +67,23 @@ The firmware follows a layered design that separates hardware access from applic
 classDiagram
     direction LR
 
+    class FrameParser {
+        +push(byte, RawFrame) bool
+    }
+    class FrameDecoder {
+        +decode(RawFrame) Frame*
+    }
+    class RawFrame {
+        +type : uint8_t
+        +len : uint8_t
+        +payload : uint8_t[]
+        +crc : uint16_t
+    }
+    class Frame {
+        <<abstract>>
+        +type : FrameType
+        +accept(FrameVisitor)
+    }
     class FrameVisitor {
         <<abstract>>
         +visit(PingFrame)
@@ -82,6 +99,11 @@ classDiagram
         +visit(GetBatteryDataFrame)
         ...()
     }
+    
+    FrameParser ..> RawFrame : produces
+    RawFrame ..> FrameDecoder : fed into
+    FrameDecoder ..> Frame : produces
+    Frame ..> FrameVisitor : accept()
     FrameVisitor <|-- AppVisitor
 
     class OutputPin {
@@ -90,19 +112,12 @@ classDiagram
         +setLow()
         +toggle()
     }
-    class SerialPort {
-        <<interface>>
-        +transmit()
-        +receive()
-    }
+
     class AsyncSerialPort {
         <<interface>>
         +transmit()
     }
-    class CanBus {
-        <<interface>>
-        +sendMessage()
-    }
+    
     class Timer {
         <<interface>>
     }
