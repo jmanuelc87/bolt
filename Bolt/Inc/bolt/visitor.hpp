@@ -78,30 +78,28 @@ namespace bolt
         virtual void visit(const ImuGetValuesFrame &f)
         {
             (void)f;
-            bolt::controller::ICM20948Data data{};
-            gImuController->readAll(data);
+            bolt::controller::ICM20948SensorData data{};
+            gImuSensorController->readAll(data);
+
+            // Encode as scaled big-endian int16_t (20 bytes total):
+            //   accel ×1000 → mg  |  gyro ×10 → 0.1 °/s  |  mag ×1 → µT  |  temp ×100 → 0.01 °C
+            auto pack = [](uint8_t *dst, int16_t v)
+            {
+                dst[0] = (uint8_t)(v >> 8);
+                dst[1] = (uint8_t)(v & 0xFF);
+            };
 
             uint8_t payload[20];
-            payload[0] = (uint8_t)(data.accel_x >> 8);
-            payload[1] = (uint8_t)(data.accel_x & 0xFF);
-            payload[2] = (uint8_t)(data.accel_y >> 8);
-            payload[3] = (uint8_t)(data.accel_y & 0xFF);
-            payload[4] = (uint8_t)(data.accel_z >> 8);
-            payload[5] = (uint8_t)(data.accel_z & 0xFF);
-            payload[6] = (uint8_t)(data.gyro_x >> 8);
-            payload[7] = (uint8_t)(data.gyro_x & 0xFF);
-            payload[8] = (uint8_t)(data.gyro_y >> 8);
-            payload[9] = (uint8_t)(data.gyro_y & 0xFF);
-            payload[10] = (uint8_t)(data.gyro_z >> 8);
-            payload[11] = (uint8_t)(data.gyro_z & 0xFF);
-            payload[12] = (uint8_t)(data.mag_x >> 8);
-            payload[13] = (uint8_t)(data.mag_x & 0xFF);
-            payload[14] = (uint8_t)(data.mag_y >> 8);
-            payload[15] = (uint8_t)(data.mag_y & 0xFF);
-            payload[16] = (uint8_t)(data.mag_z >> 8);
-            payload[17] = (uint8_t)(data.mag_z & 0xFF);
-            payload[18] = (uint8_t)(data.temperature >> 8);
-            payload[19] = (uint8_t)(data.temperature & 0xFF);
+            pack(&payload[0],  static_cast<int16_t>(data.accel_x     * 1000.0f));
+            pack(&payload[2],  static_cast<int16_t>(data.accel_y     * 1000.0f));
+            pack(&payload[4],  static_cast<int16_t>(data.accel_z     * 1000.0f));
+            pack(&payload[6],  static_cast<int16_t>(data.gyro_x      * 10.0f));
+            pack(&payload[8],  static_cast<int16_t>(data.gyro_y      * 10.0f));
+            pack(&payload[10], static_cast<int16_t>(data.gyro_z      * 10.0f));
+            pack(&payload[12], static_cast<int16_t>(data.mag_x));
+            pack(&payload[14], static_cast<int16_t>(data.mag_y));
+            pack(&payload[16], static_cast<int16_t>(data.mag_z));
+            pack(&payload[18], static_cast<int16_t>(data.temperature * 100.0f));
 
             Message m;
             m.size = build_frame(IMU, payload, 20, m.data, sizeof(m.data));

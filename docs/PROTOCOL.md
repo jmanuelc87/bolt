@@ -155,20 +155,29 @@ AA 07 00 84 98 55
 
 Requests accelerometer, gyroscope, magnetometer, and temperature readings from the ICM20948 IMU. Empty payload.
 
-The board responds with a 20-byte payload containing 10 signed 16-bit integers (big-endian):
+The board responds with a 20-byte payload containing 10 signed 16-bit integers (big-endian). All values are in physical units scaled to fit in an `int16_t`:
 
-| Field   | Size | Description                |
-|---------|:----:|----------------------------|
-| accel_x | 2    | Accelerometer X axis       |
-| accel_y | 2    | Accelerometer Y axis       |
-| accel_z | 2    | Accelerometer Z axis       |
-| gyro_x  | 2    | Gyroscope X axis           |
-| gyro_y  | 2    | Gyroscope Y axis           |
-| gyro_z  | 2    | Gyroscope Z axis           |
-| mag_x   | 2    | Magnetometer X axis        |
-| mag_y   | 2    | Magnetometer Y axis        |
-| mag_z   | 2    | Magnetometer Z axis        |
-| temp    | 2    | Temperature                |
+| Field   | Size | Scale  | Physical unit | Description              |
+|---------|:----:|:------:|---------------|--------------------------|
+| accel_x | 2    | ×1000  | mg            | Accelerometer X axis     |
+| accel_y | 2    | ×1000  | mg            | Accelerometer Y axis     |
+| accel_z | 2    | ×1000  | mg            | Accelerometer Z axis     |
+| gyro_x  | 2    | ×10    | 0.1 °/s       | Gyroscope X axis         |
+| gyro_y  | 2    | ×10    | 0.1 °/s       | Gyroscope Y axis         |
+| gyro_z  | 2    | ×10    | 0.1 °/s       | Gyroscope Z axis         |
+| mag_x   | 2    | ×1     | µT            | Magnetometer X axis      |
+| mag_y   | 2    | ×1     | µT            | Magnetometer Y axis      |
+| mag_z   | 2    | ×1     | µT            | Magnetometer Z axis      |
+| temp    | 2    | ×100   | 0.01 °C       | Temperature              |
+
+To recover the physical value, divide the received `int16_t` by the scale factor:
+
+```
+accel (g)   = accel_raw / 1000.0
+gyro (°/s)  = gyro_raw  / 10.0
+mag (µT)    = mag_raw   / 1.0
+temp (°C)   = temp_raw  / 100.0
+```
 
 Response frame type: `0x04` (IMU)
 

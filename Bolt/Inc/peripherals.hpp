@@ -9,6 +9,7 @@
 #include "controller/motor_controller.hpp"
 #include "controller/encoder_controller.hpp"
 #include "controller/icm20948_controller.hpp"
+#include "controller/icm20948_sensor_controller.hpp"
 #include "controller/pid_motor_controller.hpp"
 #include "controller/flash_controller.hpp"
 #include "controller/screen_controller.hpp"
@@ -27,6 +28,7 @@ using bolt::serial::UartAsyncSerialPort;
 
 using bolt::controller::EncoderController;
 using bolt::controller::ICM20948Controller;
+using bolt::controller::ICM20948SensorController;
 using bolt::controller::MotorController;
 using bolt::controller::PIDMotorController;
 using bolt::controller::PWMServoController;
@@ -57,6 +59,7 @@ PWMServoController *gPwmServo = nullptr;
 MotorController *gMotorController = nullptr;
 EncoderController *gEncoderController = nullptr;
 ICM20948Controller *gImuController = nullptr;
+ICM20948SensorController *gImuSensorController = nullptr;
 PIDMotorController *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
 FlashController *gFlashController = nullptr;
 bolt::BatteryMonitor *gBatteryMonitor = nullptr;
@@ -125,12 +128,16 @@ extern "C" void AppPeripheralsInit()
     static ICM20948Controller imuController(&spiPort);
     gImuController = &imuController;
 
+    static ICM20948SensorController imuSensorController(&imuController);
+    imuSensorController.init();
+    gImuSensorController = &imuSensorController;
+
     static InternalFlash internalFlash;
     static FlashController flashController(&internalFlash, 0x0803FC00UL);
     gFlashController = &flashController;
 
-    /* TODO: set channel and divider_ratio to match the battery sense circuit */
-    static SyncBatteryMonitor batteryMonitor(ADC1, 0, 1.0f, 6.0f, 8.4f);
+    /* BAT_ADC=ADC1, BAT_ADC_CH=14 (PC4). divider_ratio = (R1+R2)/R2 — confirm resistor values */
+    static SyncBatteryMonitor batteryMonitor(ADC1, 14, 4.0f, 9.0f, 12.6f);
     gBatteryMonitor = &batteryMonitor;
 
     static PROC_HandleTypeDef ptim_screen;
@@ -148,7 +155,7 @@ extern "C" void AppPeripheralsInit()
     static ProcessAsyncTimerPort buttonTimerPort(&ptim_button);
     static ButtonController buttonController(&buttonTimerPort, &buttonPin);
 
-    static ScreenController screenController(&screenTimerPort, &batteryMonitor, &screenDisplay, &imuController, &buttonController);
+    static ScreenController screenController(&screenTimerPort, &batteryMonitor, &screenDisplay, &imuSensorController, &buttonController);
     gScreenController = &screenController;
 
     static PROC_HandleTypeDef pidTimHandles[4];

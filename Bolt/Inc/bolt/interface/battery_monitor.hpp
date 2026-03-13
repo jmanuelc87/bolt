@@ -35,8 +35,8 @@ namespace bolt
             SyncBatteryMonitor(ADC_TypeDef *adc,
                                uint8_t channel,
                                float divider_ratio = 1.0f,
-                               float min_voltage   = 6.0f,
-                               float max_voltage   = 8.4f);
+                               float min_voltage   = 5.4f,
+                               float max_voltage   = 12.1f);
 
             ~SyncBatteryMonitor() = default;
 
