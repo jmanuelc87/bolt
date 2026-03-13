@@ -67,6 +67,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Bolt/Src/application.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/queues.cpp
     ${CMAKE_SOURCE_DIR}/Bolt/Src/debug.c
+    ${CMAKE_SOURCE_DIR}/Drivers/ssd1306/ssd1306/ssd1306.c
+    ${CMAKE_SOURCE_DIR}/Drivers/ssd1306/ssd1306/ssd1306_fonts.c
 )
 
 # Add include paths
@@ -74,6 +76,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     ${CMAKE_SOURCE_DIR}/Bolt/Inc
     ${CMAKE_SOURCE_DIR}/Bolt/Inc/bolt
+    ${CMAKE_SOURCE_DIR}/Drivers/ssd1306/ssd1306
 )
 
 # Add project symbols (macros)

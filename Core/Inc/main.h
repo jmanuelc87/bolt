@@ -69,10 +69,6 @@ void Error_Handler(void);
 #define S4_GPIO_Port GPIOC
 #define BEEP_Pin GPIO_PIN_5
 #define BEEP_GPIO_Port GPIOC
-#define SCL_Pin GPIO_PIN_10
-#define SCL_GPIO_Port GPIOB
-#define SDA_Pin GPIO_PIN_11
-#define SDA_GPIO_Port GPIOB
 #define ICM20948_CS_Pin GPIO_PIN_12
 #define ICM20948_CS_GPIO_Port GPIOB
 #define KEY1_Pin GPIO_PIN_2
