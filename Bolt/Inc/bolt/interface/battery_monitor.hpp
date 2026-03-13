@@ -18,7 +18,7 @@ namespace bolt
          *   v_battery  = v_measured * divider_ratio
          *
          * Percentage is clamped to [0, 100] over the configured [min_voltage, max_voltage] range.
-         * Default parameters target a 2S LiPo (6.0 V empty, 8.4 V full).
+         * Default parameters target a 3S LiPo (9.6 V empty, 12.6 V full).
          */
         class SyncBatteryMonitor : public bolt::BatteryMonitor
         {
@@ -34,9 +34,9 @@ namespace bolt
              */
             SyncBatteryMonitor(ADC_TypeDef *adc,
                                uint8_t channel,
-                               float divider_ratio = 1.0f,
-                               float min_voltage   = 5.4f,
-                               float max_voltage   = 12.1f);
+                               float divider_ratio = 4.0303f,
+                               float min_voltage   = 9.6f,
+                               float max_voltage   = 12.6f);
 
             ~SyncBatteryMonitor() = default;
 

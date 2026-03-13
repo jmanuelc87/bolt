@@ -38,17 +38,17 @@ using bolt::timer::CountSyncTimerPort;
 using bolt::timer::PROC_HandleTypeDef;
 using bolt::timer::PWMSyncTimerPort;
 
+using bolt::adc::SyncBatteryMonitor;
 using bolt::can::CanBusAsyncPort;
+using bolt::controller::ButtonController;
 using bolt::controller::FlashController;
 using bolt::controller::FlashKey;
 using bolt::controller::ScreenController;
-using bolt::controller::ButtonController;
-using bolt::flash::InternalFlash;
-using bolt::pin::GpioOutputPin;
-using bolt::pin::GpioInputPin;
-using bolt::spi::SpiSyncPort;
-using bolt::adc::SyncBatteryMonitor;
 using bolt::display::SSD1306Display;
+using bolt::flash::InternalFlash;
+using bolt::pin::GpioInputPin;
+using bolt::pin::GpioOutputPin;
+using bolt::spi::SpiSyncPort;
 
 UartAsyncSerialPort *gUart1 = nullptr;
 
@@ -137,11 +137,11 @@ extern "C" void AppPeripheralsInit()
     gFlashController = &flashController;
 
     /* BAT_ADC=ADC1, BAT_ADC_CH=14 (PC4). divider_ratio = (R1+R2)/R2 — confirm resistor values */
-    static SyncBatteryMonitor batteryMonitor(ADC1, 14, 4.0f, 9.0f, 12.6f);
+    static SyncBatteryMonitor batteryMonitor(ADC1, 14);
     gBatteryMonitor = &batteryMonitor;
 
     static PROC_HandleTypeDef ptim_screen;
-    ptim_screen.timer   = 200;   /* 200 × 5 ms = 1 s refresh rate */
+    ptim_screen.timer = 200; /* 200 × 5 ms = 1 s refresh rate */
     ptim_screen.counter = 200;
 
     static ProcessAsyncTimerPort screenTimerPort(&ptim_screen);
@@ -149,7 +149,7 @@ extern "C" void AppPeripheralsInit()
     static SSD1306Display screenDisplay;
 
     static PROC_HandleTypeDef ptim_button;
-    ptim_button.timer   = 1;   /* 1 × 5 ms tick — debounce handled inside ButtonController */
+    ptim_button.timer = 1; /* 1 × 5 ms tick — debounce handled inside ButtonController */
     ptim_button.counter = 1;
 
     static ProcessAsyncTimerPort buttonTimerPort(&ptim_button);
