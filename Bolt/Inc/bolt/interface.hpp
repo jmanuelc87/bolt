@@ -17,6 +17,13 @@ namespace bolt
         virtual ~OutputPin() = default;
     };
 
+    class InputPin
+    {
+    public:
+        virtual bool read() = 0;
+        virtual ~InputPin() = default;
+    };
+
     class SerialPort
     {
     public:
@@ -82,6 +89,17 @@ namespace bolt
         virtual float voltage() = 0;
         virtual float percentage() = 0;
         virtual ~BatteryMonitor() = default;
+    };
+
+    class Display
+    {
+    public:
+        virtual void init() = 0;
+        virtual void clear() = 0;
+        virtual void update() = 0;
+        virtual void print(uint8_t x, uint8_t y, const char *str) = 0;
+        virtual void setOn(bool on) = 0;
+        virtual ~Display() = default;
     };
 }
 

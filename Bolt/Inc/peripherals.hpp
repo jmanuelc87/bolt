@@ -11,11 +11,16 @@
 #include "controller/icm20948_controller.hpp"
 #include "controller/pid_motor_controller.hpp"
 #include "controller/flash_controller.hpp"
+#include "controller/screen_controller.hpp"
 #include "interface/flash_interface.hpp"
+#include "interface/battery_monitor.hpp"
+#include "interface/screen_interface.hpp"
+#include "interface/button_interface.hpp"
 
 #include "definitions.hpp"
 #include "main.h"
 #include "spi.h"
+#include "i2c.h"
 
 using bolt::controller::UartServoController;
 using bolt::serial::UartAsyncSerialPort;
@@ -34,9 +39,14 @@ using bolt::timer::PWMSyncTimerPort;
 using bolt::can::CanBusAsyncPort;
 using bolt::controller::FlashController;
 using bolt::controller::FlashKey;
+using bolt::controller::ScreenController;
+using bolt::controller::ButtonController;
 using bolt::flash::InternalFlash;
 using bolt::pin::GpioOutputPin;
+using bolt::pin::GpioInputPin;
 using bolt::spi::SpiSyncPort;
+using bolt::adc::SyncBatteryMonitor;
+using bolt::display::SSD1306Display;
 
 UartAsyncSerialPort *gUart1 = nullptr;
 
@@ -50,6 +60,8 @@ ICM20948Controller *gImuController = nullptr;
 PIDMotorController *gPidMotorController[4] = {nullptr, nullptr, nullptr, nullptr};
 FlashController *gFlashController = nullptr;
 bolt::BatteryMonitor *gBatteryMonitor = nullptr;
+ScreenController *gScreenController = nullptr;
+GpioInputPin *gButtonPin = nullptr;
 
 extern "C" void AppPeripheralsInit()
 {
@@ -105,6 +117,9 @@ extern "C" void AppPeripheralsInit()
     static EncoderController encoderController(&procAsyncTimerPort, &syncTimerPort3, &syncTimerPort4, &syncTimerPort5, &syncTimerPort6);
     gEncoderController = &encoderController;
 
+    static GpioInputPin buttonPin(GPIOD, GPIO_PIN_2);
+    gButtonPin = &buttonPin;
+
     static GpioOutputPin imuCsPin(ICM20948_CS_GPIO_Port, ICM20948_CS_Pin);
     static SpiSyncPort spiPort(&hspi2, &imuCsPin);
     static ICM20948Controller imuController(&spiPort);
@@ -113,6 +128,28 @@ extern "C" void AppPeripheralsInit()
     static InternalFlash internalFlash;
     static FlashController flashController(&internalFlash, 0x0803FC00UL);
     gFlashController = &flashController;
+
+    /* TODO: set channel and divider_ratio to match the battery sense circuit */
+    static SyncBatteryMonitor batteryMonitor(ADC1, 0, 1.0f, 6.0f, 8.4f);
+    gBatteryMonitor = &batteryMonitor;
+
+    static PROC_HandleTypeDef ptim_screen;
+    ptim_screen.timer   = 200;   /* 200 × 5 ms = 1 s refresh rate */
+    ptim_screen.counter = 200;
+
+    static ProcessAsyncTimerPort screenTimerPort(&ptim_screen);
+
+    static SSD1306Display screenDisplay;
+
+    static PROC_HandleTypeDef ptim_button;
+    ptim_button.timer   = 1;   /* 1 × 5 ms tick — debounce handled inside ButtonController */
+    ptim_button.counter = 1;
+
+    static ProcessAsyncTimerPort buttonTimerPort(&ptim_button);
+    static ButtonController buttonController(&buttonTimerPort, &buttonPin);
+
+    static ScreenController screenController(&screenTimerPort, &batteryMonitor, &screenDisplay, &imuController, &buttonController);
+    gScreenController = &screenController;
 
     static PROC_HandleTypeDef pidTimHandles[4];
     static ProcessAsyncTimerPort *pidSamplers[4];
