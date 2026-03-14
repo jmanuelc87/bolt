@@ -47,10 +47,10 @@ namespace bolt
             const int16_t MAX_MOTOR_PULSE = 3600;
 
             std::map<int, std::pair<int, int>> motor2ports_ = {
-                {1, {4, 5}},
-                {2, {7, 6}},
-                {3, {3, 0}},
-                {4, {1, 2}},
+                {0, {4, 5}},
+                {1, {7, 6}},
+                {2, {3, 0}},
+                {3, {1, 2}},
             };
 
             int16_t ignore_dead_zone(int16_t pulse);

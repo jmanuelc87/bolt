@@ -84,6 +84,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
     USE_CANBUS
+    USE_PID
 )
 
 # Add linked libraries

@@ -170,15 +170,15 @@ extern "C" void AppPeripheralsInit()
         float ki = flashController.load(static_cast<FlashKey>(base + 1));
         float kd = flashController.load(static_cast<FlashKey>(base + 2));
 
-        pidTimHandles[i].timer = 20;
+        pidTimHandles[i].timer = 20; /* every 20 ms */
         pidTimHandles[i].counter = 20;
         pidSamplers[i] = new ProcessAsyncTimerPort(&pidTimHandles[i]);
         pidControllers[i] = new PIDMotorController(
             pidSamplers[i],
-            kp, ki, kd, 0.1f,
+            kp, ki, kd, 0.02f,
             -2000.0f, 2000.0f,
             &motorController, &encoderController,
-            i + 1);
+            i);
         gPidMotorController[i] = pidControllers[i];
     }
 }

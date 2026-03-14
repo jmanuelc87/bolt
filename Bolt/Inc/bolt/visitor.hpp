@@ -65,10 +65,10 @@ namespace bolt
         virtual void visit(const EncoderGetValuesFrame &f)
         {
             (void)f;
-            float rpm1 = gEncoderController->getRPM(1);
-            float rpm2 = gEncoderController->getRPM(2);
-            float rpm3 = gEncoderController->getRPM(3);
-            float rpm4 = gEncoderController->getRPM(4);
+            float rpm1 = gEncoderController->getRPM(0);
+            float rpm2 = gEncoderController->getRPM(1);
+            float rpm3 = gEncoderController->getRPM(2);
+            float rpm4 = gEncoderController->getRPM(3);
 
             float array[] = {rpm1, rpm2, rpm3, rpm4};
 
@@ -108,32 +108,29 @@ namespace bolt
 
         virtual void visit(const PidMotorSetRpmFrame &f)
         {
-            uint8_t idx = f.motor - 1;
-            if (idx < 4 && gPidMotorController[idx])
+            if (f.motor < 4 && gPidMotorController[f.motor])
             {
-                gPidMotorController[idx]->setTargetRPM(f.rpm);
+                gPidMotorController[f.motor]->setTargetRPM(f.rpm);
             }
         }
 
         virtual void visit(const PidMotorStopFrame &f)
         {
-            uint8_t idx = f.motor - 1;
-            if (idx < 4 && gPidMotorController[idx])
+            if (f.motor < 4 && gPidMotorController[f.motor])
             {
-                gPidMotorController[idx]->stop(f.brake);
+                gPidMotorController[f.motor]->stop(f.brake);
             }
         }
 
         virtual void visit(const PidSetGainsFrame &f)
         {
-            uint8_t idx = f.motor - 1;
-            if (idx < 4 && gPidMotorController[idx])
+            if (f.motor < 4 && gPidMotorController[f.motor])
             {
-                gPidMotorController[idx]->setGains(f.kp, f.ki, f.kd);
+                gPidMotorController[f.motor]->setGains(f.kp, f.ki, f.kd);
 
                 if (f.save && gFlashController)
                 {
-                    uint8_t base = idx * 3;
+                    uint8_t base = f.motor * 3;
                     gFlashController->store(static_cast<bolt::controller::FlashKey>(base + 0), f.kp);
                     gFlashController->store(static_cast<bolt::controller::FlashKey>(base + 1), f.ki);
                     gFlashController->store(static_cast<bolt::controller::FlashKey>(base + 2), f.kd);

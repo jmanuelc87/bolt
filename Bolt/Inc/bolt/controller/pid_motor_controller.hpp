@@ -29,7 +29,7 @@ namespace bolt
 #ifdef USE_PID
                 outputCallback = [this](float output)
                 {
-                    motor_->setSpeed(motorId_ - 1, static_cast<int16_t>(output));
+                    motor_->setSpeed(motorId_, static_cast<int16_t>(output));
                 };
 #endif
             }
@@ -42,7 +42,7 @@ namespace bolt
             {
                 setSetpoint(0.0f);
                 reset();
-                motor_->stop(motorId_ - 1, brake);
+                motor_->stop(motorId_, brake);
             }
 
         private:
