@@ -34,7 +34,7 @@ namespace bolt
         class PWMServoController : public ServoController
         {
         public:
-            PWMServoController(bolt::timer::PWMSyncTimerPort *port,
+            PWMServoController(bolt::timer::PWMSyncTimerPort *syncPort,
                                GpioOutputPin *pin0, GpioOutputPin *pin1,
                                GpioOutputPin *pin2, GpioOutputPin *pin3);
             ~PWMServoController();
@@ -44,16 +44,26 @@ namespace bolt
             void setPulses(int16_t pulse1, int16_t pulse2, int16_t pulse3, int16_t pulse4) override;
 
         private:
-            static constexpr uint16_t FRAME_TICKS = 200;
+            static constexpr uint16_t FRAME_PERIOD_ARR = 19999;
 
-            bolt::timer::PWMSyncTimerPort *port_;
+            struct PulseEvent
+            {
+                uint16_t time;
+                uint8_t mask;
+            };
+
+            bolt::timer::PWMSyncTimerPort *syncPort_;
             GpioOutputPin *pins_[4];
 
-            volatile uint8_t pulseTicks_[4] = {0, 0, 0, 0};
-            volatile uint16_t frameCounter_ = 0;
+            volatile uint16_t pulseTicks_[4] = {0, 0, 0, 0};
+
+            PulseEvent events_[4];
+            uint8_t numEvents_ = 0;
+            uint8_t phase_ = 0;
 
             int16_t angleToUs(uint8_t angle);
-            uint8_t usToTicks(int16_t us);
+            uint16_t usToTicks(int16_t us);
+            void rebuildEvents();
             void tick();
         };
 

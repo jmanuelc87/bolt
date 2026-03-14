@@ -107,7 +107,7 @@ extern "C" void AppPeripheralsInit()
     HAL_TIM_Base_Start_IT(&htim7);
 
     static PROC_HandleTypeDef ptim1;
-    ptim1.timer = 100;
+    ptim1.timer = 100; /* every 100 ms */
     ptim1.counter = 100;
 
     static ProcessAsyncTimerPort procAsyncTimerPort(&ptim1);
@@ -141,16 +141,16 @@ extern "C" void AppPeripheralsInit()
     gBatteryMonitor = &batteryMonitor;
 
     static PROC_HandleTypeDef ptim_screen;
-    ptim_screen.timer = 200; /* 200 × 5 ms = 1 s refresh rate */
-    ptim_screen.counter = 200;
+    ptim_screen.timer = 500; /* every 500 ms */
+    ptim_screen.counter = 500;
 
     static ProcessAsyncTimerPort screenTimerPort(&ptim_screen);
 
     static SSD1306Display screenDisplay;
 
     static PROC_HandleTypeDef ptim_button;
-    ptim_button.timer = 1; /* 1 × 5 ms tick — debounce handled inside ButtonController */
-    ptim_button.counter = 1;
+    ptim_button.timer = 5; /* every 5 ms */
+    ptim_button.counter = 5;
 
     static ProcessAsyncTimerPort buttonTimerPort(&ptim_button);
     static ButtonController buttonController(&buttonTimerPort, &buttonPin);

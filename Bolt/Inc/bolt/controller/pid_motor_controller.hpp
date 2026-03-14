@@ -26,10 +26,12 @@ namespace bolt
                     return encoder_->getRPM(motorId_);
                 };
 
+#ifdef USE_PID
                 outputCallback = [this](float output)
                 {
                     motor_->setSpeed(motorId_ - 1, static_cast<int16_t>(output));
                 };
+#endif
             }
 
             ~PIDMotorController() {}

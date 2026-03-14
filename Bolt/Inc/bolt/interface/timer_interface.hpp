@@ -63,6 +63,12 @@ namespace bolt
 
             void setPulses(int16_t pulse1, int16_t pulse2, int16_t pulse3, int16_t pulse4) override;
 
+            uint16_t getCounter() const { return __HAL_TIM_GET_COUNTER(htim_); }
+            void setAutoreload(uint16_t arr) { __HAL_TIM_SET_AUTORELOAD(htim_, arr); }
+            void resetCounter() { __HAL_TIM_SET_COUNTER(htim_, 0); }
+            void startIT() { __HAL_TIM_CLEAR_FLAG(htim_, TIM_FLAG_UPDATE); HAL_TIM_Base_Start_IT(htim_); }
+            void stopIT() { HAL_TIM_Base_Stop_IT(htim_); }
+
             friend class HandleRegistry<PWMSyncTimerPort, TIM_HandleTypeDef>;
 
             std::function<void()> timElapsedCompleteCallback;

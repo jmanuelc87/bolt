@@ -7,10 +7,10 @@
 #include "utils.h"
 
 bolt::controller::PWMServoController::PWMServoController(
-    bolt::timer::PWMSyncTimerPort *port,
+    bolt::timer::PWMSyncTimerPort *syncPort,
     GpioOutputPin *pin0, GpioOutputPin *pin1,
     GpioOutputPin *pin2, GpioOutputPin *pin3)
-    : port_(port)
+    : syncPort_(syncPort)
 {
     pins_[0] = pin0;
     pins_[1] = pin1;
@@ -23,7 +23,7 @@ bolt::controller::PWMServoController::PWMServoController(
             pins_[i]->setLow();
     }
 
-    port_->timElapsedCompleteCallback = [this]()
+    syncPort_->timElapsedCompleteCallback = [this]()
     {
         this->tick();
     };
@@ -31,34 +31,101 @@ bolt::controller::PWMServoController::PWMServoController(
 
 bolt::controller::PWMServoController::~PWMServoController()
 {
-    port_->timElapsedCompleteCallback = nullptr;
+    syncPort_->timElapsedCompleteCallback = nullptr;
+}
+
+void bolt::controller::PWMServoController::rebuildEvents()
+{
+    numEvents_ = 0;
+
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        if (!pins_[i] || pulseTicks_[i] == 0)
+            continue;
+
+        uint16_t t = pulseTicks_[i];
+
+        // Merge into existing event with same time, or insert sorted
+        bool merged = false;
+        for (uint8_t j = 0; j < numEvents_; j++)
+        {
+            if (events_[j].time == t)
+            {
+                events_[j].mask |= (1u << i);
+                merged = true;
+                break;
+            }
+        }
+
+        if (!merged)
+        {
+            // Find insertion position (keep sorted by time)
+            uint8_t pos = numEvents_;
+            for (uint8_t j = 0; j < numEvents_; j++)
+            {
+                if (events_[j].time > t)
+                {
+                    pos = j;
+                    break;
+                }
+            }
+            // Shift right
+            for (uint8_t k = numEvents_; k > pos; k--)
+                events_[k] = events_[k - 1];
+
+            events_[pos].time = t;
+            events_[pos].mask = (1u << i);
+            numEvents_++;
+        }
+    }
 }
 
 void bolt::controller::PWMServoController::tick()
 {
-    if (frameCounter_ == 0)
+    if (phase_ == 0)
     {
+        rebuildEvents();
+
         for (uint8_t i = 0; i < 4; i++)
         {
             if (pins_[i] && pulseTicks_[i] > 0)
-            {
                 pins_[i]->setHigh();
-            }
         }
-    }
 
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        if (pins_[i] && frameCounter_ == pulseTicks_[i])
+        if (numEvents_ > 0)
         {
-            pins_[i]->setLow();
+            syncPort_->setAutoreload(events_[0].time - 1);
+            syncPort_->resetCounter();
+            phase_ = 1;
+        }
+        else
+        {
+            syncPort_->setAutoreload(FRAME_PERIOD_ARR);
         }
     }
-
-    frameCounter_++;
-    if (frameCounter_ >= FRAME_TICKS)
+    else
     {
-        frameCounter_ = 0;
+        uint8_t mask = events_[phase_ - 1].mask;
+        for (uint8_t i = 0; i < 4; i++)
+        {
+            if (mask & (1u << i))
+                pins_[i]->setLow();
+        }
+
+        if (phase_ < numEvents_)
+        {
+            uint16_t dt = events_[phase_].time - events_[phase_ - 1].time;
+            syncPort_->setAutoreload(dt - 1);
+            syncPort_->resetCounter();
+            phase_++;
+        }
+        else
+        {
+            uint16_t remaining = (FRAME_PERIOD_ARR + 1) - events_[numEvents_ - 1].time;
+            syncPort_->setAutoreload(remaining > 0 ? remaining - 1 : 0);
+            syncPort_->resetCounter();
+            phase_ = 0;
+        }
     }
 }
 
@@ -78,17 +145,17 @@ void bolt::controller::PWMServoController::setPulses(int16_t pulse1, int16_t pul
     pulseTicks_[3] = usToTicks(pulse4);
 }
 
-uint8_t bolt::controller::PWMServoController::usToTicks(int16_t us)
+uint16_t bolt::controller::PWMServoController::usToTicks(int16_t us)
 {
     if (us <= 0)
         return 0;
 
-    uint8_t ticks = static_cast<uint8_t>((us + 50) / 100);
+    uint16_t ticks = static_cast<uint16_t>(us);
 
-    if (ticks < 5)
-        ticks = 5;
-    if (ticks > 24)
-        ticks = 24;
+    if (ticks < 500)
+        ticks = 500;
+    if (ticks > 2500)
+        ticks = 2500;
 
     return ticks;
 }
@@ -96,7 +163,7 @@ uint8_t bolt::controller::PWMServoController::usToTicks(int16_t us)
 int16_t bolt::controller::PWMServoController::angleToUs(uint8_t angle)
 {
     static constexpr float MIN_US = 500.0f;
-    static constexpr float MAX_US = 2400.0f;
+    static constexpr float MAX_US = 2500.0f;
     static constexpr float NEUTRAL_US = 1500.0f;
 
     float deg = static_cast<float>(angle);
