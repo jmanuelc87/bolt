@@ -39,7 +39,7 @@ namespace bolt
 
             float getCPS(uint8_t id)
             {
-                return vel_cps_[id - 1] * 100.0f;
+                return vel_cps_[id - 1] * 10.0f;
             }
 
             float getRPM(uint8_t id)

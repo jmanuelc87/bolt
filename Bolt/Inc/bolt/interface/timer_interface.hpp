@@ -89,7 +89,7 @@ namespace bolt
             int32_t last_ = 0;
             int32_t now_ = 0;
 
-            const int32_t ENC_PERIOD = 0x10000000U;
+            const int32_t ENC_PERIOD = 0x10000;
             const int32_t ENC_HALF_PERIOD = (ENC_PERIOD / 2);
         };
 
