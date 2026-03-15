@@ -1,6 +1,6 @@
 # Bolt
 
-Embedded firmware for an STM32F103XE (ARM Cortex-M3) robotics platform. Bolt controls motors, servos, and encoders through a binary frame protocol over UART or CAN bus, using FreeRTOS for real-time task management. Written in C++17 with a C11 HAL layer.
+Embedded firmware for an STM32F103RCTx (ARM Cortex-M3, 256K Flash / 48K RAM) robotics platform. Bolt controls motors, servos, and encoders through a binary frame protocol over UART or CAN bus, using FreeRTOS for real-time task management. Written in C++17 with a C11 HAL layer.
 
 ![Yahboom YB-ERF01-V3.0 Board](docs/board.png)
 
@@ -44,7 +44,7 @@ STM32_Programmer_CLI -c port=SWD -w build/Debug/bolt.elf -hardRst
 cmake --preset default -S tests
 
 # Build
-cmake --build ./build/tests
+cmake --build ./build/tests --preset default
 
 # Run all tests
 cd ./tests && ctest --preset default && cd ..
@@ -90,16 +90,14 @@ classDiagram
         +visit(MotorSpeedFrame)
         +visit(PidSetGainsFrame)
         +visit(GetBatteryDataFrame)
-        ...()
-    }
+        ...()\n    }
     class AppVisitor {
         +visit(PingFrame)
         +visit(MotorSpeedFrame)
         +visit(PidSetGainsFrame)
         +visit(GetBatteryDataFrame)
-        ...()
-    }
-    
+        ...()\n    }
+
     FrameParser ..> RawFrame : produces
     RawFrame ..> FrameDecoder : fed into
     FrameDecoder ..> Frame : produces
@@ -117,7 +115,7 @@ classDiagram
         <<interface>>
         +transmit()
     }
-    
+
     class Timer {
         <<interface>>
     }
@@ -163,6 +161,8 @@ classDiagram
     class PIDController
     class PIDMotorController
     class FlashController
+    class ScreenController
+    class ButtonController
 
     PWMTimer <.. MotorController : uses
     PWMTimer <|-- PWMServoController
@@ -187,6 +187,43 @@ classDiagram
     AppVisitor ..> FlashController : dispatches to
     AppVisitor ..> BatteryMonitor : dispatches to
 ```
+
+## FreeRTOS Task Pipeline
+
+Five tasks form the command processing pipeline, communicating via FreeRTOS queues (`configTOTAL_HEAP_SIZE` = 9000 bytes):
+
+| Task | Stack | Role |
+|------|------:|------|
+| `vCommand_Task` | 192 words | Receives raw bytes from UART (`USART1`) or CAN bus |
+| `vProcess_Task` | 384 words | Feeds bytes through `FrameParser` → `FrameDecoder` → `AppVisitor` |
+| `vQuery_Task` | 192 words | Sends response frames back over UART or CAN |
+| `v2Process_Task` | 256 words | Polls `ProcessAsyncTimerPort` registry every 5 ms; fires callbacks when counters expire — drives `EncoderController` and `PIDController` sampling |
+| `vLed_Task` | 128 words | LED heartbeat indicator |
+
+## Peripheral Mapping
+
+| Peripheral | Function |
+|------------|----------|
+| TIM1 | Motors 3–4 (PWM + complementary PWM_N) |
+| TIM8 | Motors 1–2 (PWM channels) |
+| TIM7 | PWM servo software timer (GPIO bit-bang, PC0–PC3) |
+| TIM2/3/4/5 | Encoder counters (one per motor) |
+| USART1 | Host communication (non-CAN mode) / debug `printf` |
+| USART3 | Serial servo bus |
+| SPI2 | ICM20948 IMU (software NSS via PB12) |
+| CAN bus | ISO-TP transport — RX: 0x700, FC: 0x701, TX: 0x702 |
+
+## Controller Details
+
+| Controller | Details |
+|------------|---------|
+| **MotorController** | 4 motors via TIM1/TIM8. Signed pulse input; dead-zone offset of 1600 added internally (PWM range 1600–3600). Frame protocol uses 1-based IDs; code converts to 0-based. |
+| **PWMServoController** | 4 servos via TIM7 software PWM on GPIO pins PC0–PC3. |
+| **UartServoController** | 6 servos over USART3 serial protocol, pulse range 96–4000. Get-angle command retries up to 10× with 2 ms delays. |
+| **EncoderController** | 4 encoders on TIM2/3/4/5, 2464 CPR, 100 ms sampling period (20 × 5 ms tick), low-pass filtered (α = 0.2). |
+| **ICM20948Controller** | 9-axis IMU (accel/gyro/mag + temperature) over SPI2. Uses internal I2C master for AK09916 magnetometer at 100 Hz. Bank-switched register access. Defaults: gyro ±2000 DPS, accel ±16 g. |
+| **PIDMotorController** | Closed-loop PID control wiring `EncoderController` as feedback and `MotorController` as actuator. Gains persist to flash via `FlashController`. |
+| **BatteryMonitor** | Reports voltage (V) and charge level (%). |
 
 ## CAN Bus ISO-TP Communication
 
